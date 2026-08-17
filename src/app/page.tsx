@@ -58,7 +58,7 @@ export default async function HomePage() {
               {t.home.viewAll}
             </Link>
           </div>
-          <div className="grid sm:grid-cols-3 gap-4">
+          <div className="flex sm:grid sm:grid-cols-3 gap-4 overflow-x-auto snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {bundles.map((b) => {
               const normalPrice = b.items.reduce((sum, i) => sum + i.product.price, 0);
               const bundlePrice = Math.round(normalPrice * (1 - b.discountPct / 100));
@@ -66,14 +66,14 @@ export default async function HomePage() {
                 <Link
                   key={b.id}
                   href={`/bundles/${b.slug}`}
-                  className="group flex flex-col bg-white border border-border rounded-2xl overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_32px_rgba(0,0,0,0.09)] hover:-translate-y-1 transition-all duration-300"
+                  className="group flex flex-col shrink-0 w-[70%] sm:w-auto snap-start bg-white border border-border rounded-2xl overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_32px_rgba(0,0,0,0.09)] hover:-translate-y-1 transition-all duration-300"
                 >
-                  <div className="relative aspect-[16/9] bg-bg-panel">
+                  <div className="relative aspect-[4/3] sm:aspect-[16/9] bg-bg-panel">
                     <Image
                       src={b.imageUrl}
                       alt={b.name}
                       fill
-                      sizes="(max-width: 640px) 100vw, 33vw"
+                      sizes="(max-width: 640px) 70vw, 33vw"
                       className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                     />
                     <span className="absolute top-2.5 left-2.5 bg-accent text-white text-xs font-semibold px-2.5 py-1 rounded-full">
@@ -81,7 +81,7 @@ export default async function HomePage() {
                     </span>
                   </div>
                   <div className="p-3.5 flex flex-col gap-1">
-                    <div className="font-medium text-sm">{b.name}</div>
+                    <div className="font-medium text-sm line-clamp-1">{b.name}</div>
                     <div className="flex items-baseline gap-2">
                       <span className="font-semibold tracking-tight">{formatSum(bundlePrice)}</span>
                       <span className="text-xs text-text-dim line-through">{formatSum(normalPrice)}</span>

@@ -34,7 +34,7 @@ function BannerContent({ banner }: { banner: BannerData }) {
 }
 
 const CARD_CLASS =
-  "relative shrink-0 w-[86%] sm:w-full snap-start rounded-3xl overflow-hidden bg-bg-panel aspect-[16/9] sm:aspect-[21/8] group";
+  "relative shrink-0 w-[92%] sm:w-full snap-start rounded-3xl overflow-hidden bg-bg-panel aspect-[4/3] sm:aspect-[21/8] group";
 
 export default function BannerHero({ banners }: { banners: BannerData[] }) {
   if (banners.length === 0) return null;
