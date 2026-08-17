@@ -37,9 +37,9 @@ export default function AddToCartButton({
         setAdded(true);
         setTimeout(() => setAdded(false), 1200);
       }}
-      className={`px-3 py-2 rounded-full bg-accent text-white text-sm font-semibold hover:bg-accent-dark transition-colors ${className ?? ""}`}
+      className={`px-3 py-2 rounded-full bg-accent text-white text-sm font-semibold hover:bg-accent-dark transition-colors ${added ? "animate-pop" : ""} ${className ?? ""}`}
     >
-      {added ? "Добавлено" : t.catalog.addToCart}
+      {added ? "Добавлено ✓" : t.catalog.addToCart}
     </button>
   );
 }

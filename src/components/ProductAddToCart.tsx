@@ -84,9 +84,9 @@ export default function ProductAddToCart({
           setAdded(true);
           setTimeout(() => setAdded(false), 1500);
         }}
-        className="px-5 py-3.5 rounded-full bg-accent text-white font-semibold hover:bg-accent-dark transition-colors"
+        className={`px-5 py-3.5 rounded-full bg-accent text-white font-semibold hover:bg-accent-dark transition-colors ${added ? "animate-pop" : ""}`}
       >
-        {added ? "Добавлено в корзину" : t.product.addToCart}
+        {added ? "Добавлено в корзину ✓" : t.product.addToCart}
       </button>
 
       {matches.map((m) => (

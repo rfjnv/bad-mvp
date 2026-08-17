@@ -20,7 +20,7 @@ export default async function CheckoutSuccessPage({
 
   return (
     <div className="max-w-md mx-auto px-4 py-20 text-center flex flex-col items-center gap-3">
-      <div className="w-16 h-16 rounded-full bg-green-bg flex items-center justify-center text-green text-2xl">
+      <div className="w-16 h-16 rounded-full bg-green-bg flex items-center justify-center text-green text-2xl animate-check-in">
         ✓
       </div>
       <h1 className="text-2xl font-semibold tracking-tight">{t.success.title}</h1>

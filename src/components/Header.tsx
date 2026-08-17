@@ -7,11 +7,22 @@ import { t } from "@/lib/i18n";
 
 export default function Header() {
   const [count, setCount] = useState(0);
+  const [bump, setBump] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const update = () => setCount(cartCount(getCart()));
-    update();
+    let prev = cartCount(getCart());
+    setCount(prev);
+
+    const update = () => {
+      const next = cartCount(getCart());
+      if (next > prev) {
+        setBump(true);
+        setTimeout(() => setBump(false), 400);
+      }
+      prev = next;
+      setCount(next);
+    };
     window.addEventListener(CART_CHANGED_EVENT, update);
     window.addEventListener("storage", update);
     return () => {
@@ -48,12 +59,14 @@ export default function Header() {
         <div className="flex items-center gap-2">
           <Link
             href="/cart"
-            className="relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-bg-panel transition-colors"
+            className={`relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-bg-panel transition-colors ${bump ? "animate-pop" : ""}`}
             aria-label={t.nav.cart}
           >
             <CartIcon />
             {count > 0 && (
-              <span className="absolute top-0.5 right-0.5 min-w-[17px] h-[17px] px-1 rounded-full bg-accent text-white text-[10px] font-semibold flex items-center justify-center">
+              <span
+                className={`absolute top-0.5 right-0.5 min-w-[17px] h-[17px] px-1 rounded-full bg-accent text-white text-[10px] font-semibold flex items-center justify-center ${bump ? "animate-badge-pop" : ""}`}
+              >
                 {count}
               </span>
             )}
