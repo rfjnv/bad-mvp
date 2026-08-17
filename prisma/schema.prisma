@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  NEW
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  PAYME
+  CLICK
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum SubscriptionPlan {
+  BASIC
+  COMPLEX
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  NEW
+  CONTACTED
+  ACTIVE
+  CANCELLED
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  slug      String    @unique
+  name      String
+  sortOrder Int       @default(0)
+  products  Product[]
+}
+
+model Product {
+  id                    String   @id @default(cuid())
+  slug                  String   @unique
+  name                  String
+  brand                 String
+  category              Category @relation(fields: [categoryId], references: [id])
+  categoryId            String
+  description           String
+  composition           String
+  dosage                String
+  price                 Int
+  oldPrice              Int?
+  stock                 Int      @default(0)
+  imageUrl              String
+  sesCertNumber         String?
+  sesCertFileUrl        String?
+  sesCertIssuedAt       DateTime?
+  sesCertExpiresAt      DateTime?
+  conformityCertNumber  String?
+  conformityCertFileUrl String?
+  conformityCertIssuedAt  DateTime?
+  conformityCertExpiresAt DateTime?
+  activeSubstance       String?
+  activeAmount          Float?
+  activeUnit            String?
+  servingsPerPackage    Int?
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  orderItems            OrderItem[]
+  bundleItems           BundleItem[]
+
+  @@index([categoryId])
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  orderNumber     String        @unique
+  customerName    String
+  customerPhone   String
+  customerAddress String
+  comment         String?
+  status          OrderStatus   @default(NEW)
+  paymentMethod   PaymentMethod
+  paymentStatus   PaymentStatus @default(PENDING)
+  totalAmount     Int
+  items           OrderItem[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model OrderItem {
+  id              String  @id @default(cuid())
+  order           Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId         String
+  product         Product @relation(fields: [productId], references: [id])
+  productId       String
+  quantity        Int
+  priceAtPurchase Int
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Banner {
+  id        String   @id @default(cuid())
+  title     String
+  subtitle  String?
+  imageUrl  String
+  linkUrl   String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SubscriptionRequest {
+  id            String             @id @default(cuid())
+  plan          SubscriptionPlan
+  customerName  String
+  customerPhone String
+  age           Int?
+  goals         String
+  healthNotes   String?
+  comment       String?
+  status        SubscriptionStatus @default(NEW)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+}
+
+model Bundle {
+  id           String       @id @default(cuid())
+  slug         String       @unique
+  name         String
+  description  String
+  discountPct  Int
+  imageUrl     String
+  isActive     Boolean      @default(true)
+  sortOrder    Int          @default(0)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  items        BundleItem[]
+}
+
+model BundleItem {
+  id        String  @id @default(cuid())
+  bundle    Bundle  @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  bundleId  String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+
+  @@unique([bundleId, productId])
+  @@index([productId])
+}
+
+model TelegramSubscriber {
+  id              String   @id @default(cuid())
+  deviceId        String   @unique
+  chatId          String?
+  routineSnapshot String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Counter {
+  id    String @id
+  value Int    @default(0)
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  login        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}

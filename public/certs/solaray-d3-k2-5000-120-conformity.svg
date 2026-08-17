@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800">
+  <rect width="600" height="800" fill="#fdfcf7"/>
+  <rect x="14" y="14" width="572" height="772" fill="none" stroke="#c9c2a8" stroke-width="2"/>
+  <rect x="24" y="24" width="552" height="752" fill="none" stroke="#c9c2a8" stroke-width="1"/>
+
+  <text x="300" y="90" font-family="Georgia, serif" font-size="22" font-weight="700" fill="#3a3625" text-anchor="middle">Сертификат соответствия</text>
+  <line x1="80" y1="110" x2="520" y2="110" stroke="#c9c2a8" stroke-width="1"/>
+
+  <rect x="80" y="150" width="440" height="14" rx="4" fill="#e5e0cf"/>
+  <rect x="80" y="180" width="380" height="14" rx="4" fill="#e5e0cf"/>
+  <rect x="80" y="210" width="410" height="14" rx="4" fill="#e5e0cf"/>
+  <rect x="80" y="240" width="300" height="14" rx="4" fill="#e5e0cf"/>
+
+  <text x="80" y="310" font-family="Courier New, monospace" font-size="16" fill="#3a3625">Номер: UZ-СТ.02.01.00512</text>
+  <text x="80" y="336" font-family="Courier New, monospace" font-size="14" fill="#6b6650">Выдано: 12.08.2026</text>
+
+  <rect x="80" y="380" width="440" height="14" rx="4" fill="#e5e0cf"/>
+  <rect x="80" y="410" width="360" height="14" rx="4" fill="#e5e0cf"/>
+  <rect x="80" y="440" width="420" height="14" rx="4" fill="#e5e0cf"/>
+
+  <circle cx="440" cy="620" r="70" fill="none" stroke="#9a8f5f" stroke-width="2" stroke-dasharray="4 3"/>
+  <circle cx="440" cy="620" r="52" fill="none" stroke="#9a8f5f" stroke-width="1.2"/>
+  <text x="440" y="616" font-family="Georgia, serif" font-size="11" fill="#9a8f5f" text-anchor="middle">ПЕЧАТЬ</text>
+  <text x="440" y="632" font-family="Georgia, serif" font-size="10" fill="#9a8f5f" text-anchor="middle">ОБРАЗЕЦ</text>
+
+  <path d="M90 700 q 25 -30 50 0 t 50 0 t 50 0" fill="none" stroke="#3a3625" stroke-width="1.5"/>
+  <line x1="90" y1="712" x2="230" y2="712" stroke="#c9c2a8" stroke-width="1"/>
+  <text x="90" y="730" font-family="Georgia, serif" font-size="11" fill="#6b6650">Подпись уполномоченного лица</text>
+
+  <g transform="translate(300,750) rotate(-8)">
+    <text x="0" y="0" font-family="Georgia, serif" font-size="34" font-weight="700" fill="#c9412a" opacity="0.22" text-anchor="middle">ОБРАЗЕЦ ДОКУМЕНТА</text>
+  </g>
+</svg>

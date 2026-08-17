@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="rgb(246, 246, 246)"/>
+  <circle cx="200" cy="200" r="140" fill="rgb(237, 237, 239)"/>
+  <g transform="translate(200,200)">
+    <rect x="-52" y="-118" width="104" height="236" rx="30" fill="white" stroke="#8a8a92" stroke-width="5"/>
+    <rect x="-52" y="-118" width="104" height="60" rx="30" fill="#8a8a92"/>
+    <rect x="-52" y="-88" width="104" height="30" fill="#8a8a92"/>
+    <text x="0" y="48" font-family="-apple-system, Arial, sans-serif" font-size="46" font-weight="700" fill="#8a8a92" text-anchor="middle">Zn</text>
+  </g>
+</svg>
