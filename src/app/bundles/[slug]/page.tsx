@@ -40,14 +40,14 @@ export default async function BundlePage({ params }: { params: Promise<{ slug: s
       <div className="grid sm:grid-cols-2 gap-8 sm:gap-12">
         <div className="relative aspect-square bg-bg-panel rounded-3xl overflow-hidden">
           <Image src={bundle.imageUrl} alt={bundle.name} fill className="object-cover" priority />
-          <span className="absolute top-4 left-4 bg-accent text-white text-sm font-semibold px-3 py-1.5 rounded-full">
+          <span className="absolute top-4 left-4 bg-red text-white text-sm font-semibold px-3 py-1.5 rounded-lg">
             {t.bundles.save(bundle.discountPct)}
           </span>
         </div>
 
         <div className="flex flex-col gap-5">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">{bundle.name}</h1>
+            <h1 className="display-1">{bundle.name}</h1>
             <p className="text-text-dim mt-2">{bundle.description}</p>
           </div>
 
@@ -58,7 +58,7 @@ export default async function BundlePage({ params }: { params: Promise<{ slug: s
             </div>
             <div className="flex items-baseline justify-between">
               <span className="text-sm font-semibold">{t.bundles.bundlePrice}</span>
-              <span className="text-2xl font-semibold tracking-tight text-accent">
+              <span className="display-2 text-accent">
                 {formatSum(bundlePrice)}
               </span>
             </div>

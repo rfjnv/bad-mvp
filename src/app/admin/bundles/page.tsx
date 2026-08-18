@@ -211,7 +211,7 @@ export default function AdminBundlesPage() {
           <div className="bg-red-bg border border-red/30 text-red rounded-lg px-3 py-2 text-sm">{error}</div>
         )}
 
-        <button className="px-5 py-2.5 rounded-full bg-accent text-white font-semibold text-sm w-max">
+        <button className="px-5 py-2.5 rounded-lg btn btn-primary font-semibold text-sm w-max">
           {t.common.create}
         </button>
       </form>
@@ -235,7 +235,7 @@ export default function AdminBundlesPage() {
               </div>
               <button
                 onClick={() => toggleActive(b)}
-                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium ${
+                className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium ${
                   b.isActive ? "bg-green-bg text-green" : "bg-bg text-text-dim"
                 }`}
               >

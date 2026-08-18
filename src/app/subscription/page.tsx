@@ -24,7 +24,7 @@ export default function SubscriptionPage() {
       </section>
 
       <section id="plans" className="scroll-mt-24">
-        <h2 className="text-xl sm:text-2xl font-semibold tracking-tight mb-6 text-center">
+        <h2 className="display-2 mb-6 text-center">
           {t.subscription.plansTitle}
         </h2>
         <div className="grid sm:grid-cols-3 gap-5">
@@ -43,7 +43,7 @@ export default function SubscriptionPage() {
       </section>
 
       <section>
-        <h2 className="text-xl sm:text-2xl font-semibold tracking-tight mb-6 text-center">
+        <h2 className="display-2 mb-6 text-center">
           {t.subscription.howItWorksTitle}
         </h2>
         <div className="grid sm:grid-cols-3 gap-5">
@@ -73,12 +73,12 @@ function PlanCard({
     <div
       className={`flex flex-col gap-4 rounded-3xl p-6 border transition-all ${
         plan.highlighted
-          ? "border-accent bg-accent/5 shadow-[0_16px_32px_rgba(0,113,227,0.12)]"
+          ? "border-border-strong border-2 bg-bg-panel"
           : "border-border bg-white"
       }`}
     >
       {plan.highlighted && (
-        <span className="text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full w-max">
+        <span className="text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-lg w-max">
           Популярный
         </span>
       )}
@@ -105,7 +105,7 @@ function PlanCard({
 
       <button
         onClick={onChoose}
-        className={`px-4 py-3 rounded-full font-semibold text-sm border transition-colors ${
+        className={`px-4 py-3 rounded-lg font-semibold text-sm border transition-colors ${
           active
             ? "bg-accent border-accent text-white hover:bg-accent-dark hover:border-accent-dark"
             : "bg-white border-accent/40 text-accent hover:border-accent hover:bg-accent/5"

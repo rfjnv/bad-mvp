@@ -118,7 +118,7 @@ export default function AdminSubscriptionsPage() {
                     key={s}
                     disabled={savingId === r.id}
                     onClick={() => changeStatus(r.id, s)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border disabled:opacity-60 transition-colors ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border disabled:opacity-60 transition-colors ${
                       r.status === s
                         ? "bg-accent text-white border-accent"
                         : "bg-white text-text-dim border-border"

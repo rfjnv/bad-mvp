@@ -93,7 +93,7 @@ export default function AdminCategoriesPage() {
           placeholder="Порядок"
           className="w-24 px-3 py-2 rounded-lg bg-bg-panel-2 border border-border text-sm"
         />
-        <button className="px-4 py-2 rounded-lg bg-accent text-white font-semibold text-sm">
+        <button className="px-4 py-2 rounded-lg btn btn-primary font-semibold text-sm">
           {t.common.create}
         </button>
       </form>

@@ -31,7 +31,8 @@ export async function generateMetadata({
 
   const description = `${product.brand} — ${product.name}. ${formatSum(product.price)}.`;
   return {
-    title: `${product.name} — ${t.common.siteName}`,
+    // Суффикс с названием магазина добавляет шаблон в layout — здесь только имя товара
+    title: product.name,
     description,
     openGraph: {
       title: product.name,
@@ -61,7 +62,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const perUnit = computePricePerUnit(product);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex flex-col gap-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 pb-28 sm:pb-12 flex flex-col gap-8">
       <nav className="flex items-center gap-1.5 text-sm text-text-dim flex-wrap">
         <Link href="/" className="hover:text-text transition-colors">
           {t.nav.home}
@@ -81,7 +82,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <div className="relative aspect-square bg-bg-panel rounded-3xl overflow-hidden">
           <Image src={product.imageUrl} alt={product.name} fill className="object-cover" priority />
           {hasDiscount && (
-            <span className="absolute top-4 left-4 bg-red text-white text-sm font-semibold px-3 py-1.5 rounded-full">
+            <span className="absolute top-4 left-4 bg-red text-white text-sm font-semibold px-3 py-1.5 rounded-lg">
               −{discountPct}%
             </span>
           )}
@@ -90,12 +91,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <div className="flex flex-col gap-5">
           <div>
             <div className="text-sm text-text-dim mb-1">{product.brand}</div>
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">{product.name}</h1>
+            <h1 className="display-2">{product.name}</h1>
           </div>
 
           <div>
             <div className="flex items-baseline gap-3">
-              <span className="text-2xl font-semibold tracking-tight">{formatSum(product.price)}</span>
+              <span className="display-2">{formatSum(product.price)}</span>
               {product.oldPrice && product.oldPrice > product.price && (
                 <span className="text-text-dim line-through">{formatSum(product.oldPrice)}</span>
               )}
@@ -107,11 +108,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
           <div>
             {product.stock > 0 ? (
-              <span className="inline-flex items-center gap-1.5 text-sm text-green bg-green-bg px-3 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1.5 text-sm text-green bg-green-bg px-3 py-1 rounded-lg">
                 {t.product.inStock}
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 text-sm text-red bg-red-bg px-3 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1.5 text-sm text-red bg-red-bg px-3 py-1 rounded-lg">
                 {t.product.outOfStock}
               </span>
             )}
@@ -121,6 +122,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             productId={product.id}
             stock={product.stock}
             categorySlug={product.category.slug}
+            price={product.price}
           />
 
           <AddToTrackerButton

@@ -53,7 +53,7 @@ export default function AdminTelegramPage() {
         <button
           onClick={sendReminders}
           disabled={sending}
-          className="px-5 py-2.5 rounded-full bg-accent text-white font-semibold text-sm disabled:opacity-60"
+          className="px-5 py-2.5 rounded-lg btn btn-primary font-semibold text-sm disabled:opacity-60"
         >
           {sending ? "Отправляем..." : "Отправить напоминания сейчас"}
         </button>
@@ -103,7 +103,7 @@ export default function AdminTelegramPage() {
                     </div>
                   </div>
                   <span
-                    className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-medium ${
+                    className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium ${
                       s.chatId ? "bg-green-bg text-green" : "bg-bg text-text-dim"
                     }`}
                   >

@@ -7,7 +7,9 @@ import { getCart, setCartQuantity, removeFromCart, type CartLine } from "@/lib/c
 import { formatSum } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import EmptyState from "@/components/EmptyState";
+import StickyBar from "@/components/StickyBar";
 import CompatibilityPanel from "@/components/CompatibilityPanel";
+import { deliveryFee, amountUntilFreeDelivery, DELIVERY_TERMS } from "@/lib/delivery";
 import { findInteractions } from "@/lib/compatibility";
 import {
   getActiveBundle,
@@ -85,7 +87,10 @@ export default function CartPage() {
             (activeBundle.discountPct / 100)
         )
       : 0;
-  const total = subtotal - bundleDiscount;
+  const afterDiscount = subtotal - bundleDiscount;
+  const fee = deliveryFee(afterDiscount);
+  const untilFree = amountUntilFreeDelivery(afterDiscount);
+  const total = afterDiscount + fee;
 
   if (loading) {
     return <div className="max-w-3xl mx-auto px-4 py-10 text-text-dim">{t.common.loading}</div>;
@@ -98,7 +103,7 @@ export default function CartPage() {
           title={t.cart.empty}
           hint={t.cart.emptyHint}
           action={
-            <Link href="/catalog" className="px-5 py-2.5 rounded-full bg-accent text-white font-semibold inline-block">
+            <Link href="/catalog" className="px-5 py-2.5 rounded-lg btn btn-primary font-semibold inline-block">
               {t.cart.goToCatalog}
             </Link>
           }
@@ -108,8 +113,8 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 flex flex-col gap-5">
-      <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">{t.cart.title}</h1>
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-28 sm:pb-8 flex flex-col gap-5">
+      <h1 className="display-1">{t.cart.title}</h1>
 
       <div className="flex flex-col gap-3">
         {lines.map((line) =>
@@ -130,9 +135,9 @@ export default function CartPage() {
                   <div className="text-xs text-red">{t.cart.maxStock(line.product.stock)}</div>
                 )}
                 <div className="flex items-center justify-between mt-1">
-                  <div className="flex items-center gap-2 border border-border rounded-full overflow-hidden">
+                  <div className="flex items-center gap-2 border border-border rounded-lg overflow-hidden">
                     <button
-                      className="w-8 h-8 flex items-center justify-center hover:bg-bg-panel transition-colors"
+                      className="w-11 h-11 flex items-center justify-center hover:bg-bg-panel transition-colors duration-150"
                       onClick={() => {
                         setCartQuantity(line.productId, line.quantity - 1, line.product!.stock);
                         refresh();
@@ -140,9 +145,9 @@ export default function CartPage() {
                     >
                       −
                     </button>
-                    <span className="w-8 text-center text-sm">{line.quantity}</span>
+                    <span className="w-10 text-center text-sm">{line.quantity}</span>
                     <button
-                      className="w-8 h-8 flex items-center justify-center hover:bg-bg-panel transition-colors"
+                      className="w-11 h-11 flex items-center justify-center hover:bg-bg-panel transition-colors duration-150"
                       onClick={() => {
                         setCartQuantity(line.productId, line.quantity + 1, line.product!.stock);
                         refresh();
@@ -156,7 +161,7 @@ export default function CartPage() {
               </div>
               <button
                 aria-label={t.cart.remove}
-                className="text-text-dim hover:text-red self-start transition-colors"
+                className="w-11 h-11 -mt-1 -mr-1 flex items-start justify-end text-text-dim hover:text-red transition-colors duration-150"
                 onClick={() => {
                   removeFromCart(line.productId);
                   refresh();
@@ -196,24 +201,56 @@ export default function CartPage() {
       )}
 
       <div className="flex flex-col gap-1.5 border-t border-border pt-5">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-text-dim">Товары</span>
+          <span>{formatSum(subtotal)}</span>
+        </div>
         {bundleDiscount > 0 && (
           <div className="flex items-center justify-between text-sm text-green">
             <span>{t.bundles.save(activeBundle!.discountPct)}</span>
             <span>−{formatSum(bundleDiscount)}</span>
           </div>
         )}
-        <div className="flex items-center justify-between">
-          <span className="text-text-dim">{t.cart.total}</span>
-          <span className="text-2xl font-semibold tracking-tight">{formatSum(total)}</span>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-text-dim">Доставка по Ташкенту</span>
+          <span className={fee === 0 ? "text-green font-medium" : ""}>
+            {fee === 0 ? "Бесплатно" : formatSum(fee)}
+          </span>
         </div>
+        {untilFree > 0 && (
+          <div className="text-[13px] text-text-dim border-l-2 border-border-strong pl-2.5 mt-1">
+            До бесплатной доставки осталось {formatSum(untilFree)}
+          </div>
+        )}
+        <div className="flex items-center justify-between border-t border-border mt-2.5 pt-3">
+          <span className="text-text-dim">{t.cart.total}</span>
+          <span className="display-2">{formatSum(total)}</span>
+        </div>
+        <div className="text-[13px] text-text-dim mt-1">{DELIVERY_TERMS}</div>
       </div>
+
+      {/* Отступ под липкую панель, чтобы она не перекрывала итоги */}
+      <div className="h-20 sm:hidden" />
 
       <Link
         href="/checkout"
-        className="px-4 py-3.5 rounded-full bg-accent text-white font-semibold text-center hover:bg-accent-dark transition-colors"
+        className="hidden sm:flex px-4 py-3.5 rounded-lg btn btn-primary font-semibold text-center"
       >
         {t.cart.checkout}
       </Link>
+
+      <StickyBar
+        label={t.cart.total}
+        value={formatSum(total)}
+        action={
+          <Link
+            href="/checkout"
+            className="min-h-[48px] px-6 rounded-lg btn btn-primary font-semibold shrink-0"
+          >
+            {t.cart.checkout}
+          </Link>
+        }
+      />
     </div>
   );
 }

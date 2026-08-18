@@ -84,7 +84,7 @@ export default function TelegramConnect({ routineNames }: { routineNames: string
         <button
           onClick={startLink}
           disabled={loading}
-          className="px-4 py-2.5 rounded-full bg-accent text-white text-sm font-semibold disabled:opacity-60 w-max"
+          className="px-4 py-2.5 rounded-lg btn btn-primary text-sm font-semibold disabled:opacity-60 w-max"
         >
           {t.tracker.telegramConnect}
         </button>
@@ -94,7 +94,7 @@ export default function TelegramConnect({ routineNames }: { routineNames: string
           <button
             onClick={simulateConnect}
             disabled={loading}
-            className="px-4 py-2.5 rounded-full bg-accent text-white text-sm font-semibold disabled:opacity-60 w-max"
+            className="px-4 py-2.5 rounded-lg btn btn-primary text-sm font-semibold disabled:opacity-60 w-max"
           >
             {t.tracker.telegramSimulate}
           </button>
@@ -107,7 +107,7 @@ export default function TelegramConnect({ routineNames }: { routineNames: string
               href={deepLink}
               target="_blank"
               rel="noreferrer"
-              className="px-4 py-2.5 rounded-full bg-accent text-white text-sm font-semibold w-max"
+              className="px-4 py-2.5 rounded-lg btn btn-primary text-sm font-semibold w-max"
             >
               {t.tracker.telegramOpenBot}
             </a>

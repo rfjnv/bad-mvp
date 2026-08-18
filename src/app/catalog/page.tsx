@@ -78,7 +78,7 @@ export default async function CatalogPage({
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-6">{t.catalog.title}</h1>
+      <h1 className="display-1 mb-6">{t.catalog.title}</h1>
 
       <div className="flex flex-col md:flex-row gap-8">
         <CatalogFilters categories={categories} brands={brands} total={total} />
@@ -97,7 +97,7 @@ export default async function CatalogPage({
               hint={t.catalog.emptyHint}
               action={
                 hasFilters && (
-                  <Link href="/catalog" className="text-accent text-sm font-medium">
+                  <Link href="/catalog" className="text-sm link-action">
                     {t.catalog.resetFilters}
                   </Link>
                 )
@@ -120,10 +120,10 @@ export default async function CatalogPage({
                   <Link
                     key={p}
                     href={`/catalog?${params.toString()}`}
-                    className={`w-10 h-10 flex items-center justify-center rounded-full text-[15px] transition-colors ${
+                    className={`w-11 h-11 flex items-center justify-center rounded-lg text-[15px] border transition-colors duration-150 ${
                       p === page
-                        ? "bg-accent text-white font-semibold shadow-[0_4px_10px_rgba(0,113,227,0.35)]"
-                        : "bg-bg-panel text-text-dim font-medium hover:bg-[#ebebee] hover:text-text"
+                        ? "bg-accent text-white border-accent font-semibold"
+                        : "bg-white text-text border-border font-medium hover:border-border-strong"
                     }`}
                   >
                     {p}

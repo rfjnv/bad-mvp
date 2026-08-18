@@ -60,7 +60,7 @@ function LoginForm() {
         )}
         <button
           disabled={submitting}
-          className="px-4 py-3 rounded-lg bg-accent text-white font-semibold disabled:opacity-60"
+          className="px-4 py-3 rounded-lg btn btn-primary font-semibold disabled:opacity-60"
         >
           {t.admin.loginSubmit}
         </button>

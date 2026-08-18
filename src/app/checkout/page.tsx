@@ -8,7 +8,9 @@ import { formatSum } from "@/lib/format";
 import { maskPhoneInput } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import EmptyState from "@/components/EmptyState";
+import StickyBar from "@/components/StickyBar";
 import CompatibilityPanel from "@/components/CompatibilityPanel";
+import { deliveryFee, DELIVERY_TERMS } from "@/lib/delivery";
 import { findInteractions } from "@/lib/compatibility";
 import { getActiveBundle, isBundleValid, clearActiveBundle, type ActiveBundle } from "@/lib/bundleCart";
 
@@ -35,6 +37,7 @@ export default function CheckoutPage() {
   const [address, setAddress] = useState("");
   const [comment, setComment] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH");
+  const [consent, setConsent] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,7 +83,9 @@ export default function CheckoutPage() {
             (activeBundle.discountPct / 100)
         )
       : 0;
-  const total = subtotal - bundleDiscount;
+  const afterDiscount = subtotal - bundleDiscount;
+  const fee = deliveryFee(afterDiscount);
+  const total = afterDiscount + fee;
 
   function validate(): boolean {
     const errs: Record<string, string> = {};
@@ -88,6 +93,7 @@ export default function CheckoutPage() {
     const digits = phone.replace(/\D/g, "");
     if (digits.length !== 12) errs.phone = "Неверный формат телефона";
     if (address.trim().length < 5) errs.address = "Укажите адрес доставки";
+    if (!consent) errs.consent = "Нужно согласие на обработку данных";
     setFieldErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -143,7 +149,7 @@ export default function CheckoutPage() {
           title={t.cart.empty}
           hint={t.cart.emptyHint}
           action={
-            <Link href="/catalog" className="px-5 py-2.5 rounded-full bg-accent text-white font-semibold inline-block">
+            <Link href="/catalog" className="px-5 py-2.5 rounded-lg btn btn-primary font-semibold inline-block">
               {t.cart.goToCatalog}
             </Link>
           }
@@ -153,8 +159,8 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 flex flex-col gap-6">
-      <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">{t.checkout.title}</h1>
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 pb-28 sm:pb-8 flex flex-col gap-6">
+      <h1 className="display-1">{t.checkout.title}</h1>
 
       <div className="bg-bg-panel rounded-2xl p-5 flex flex-col gap-2">
         <div className="text-sm font-semibold mb-1">{t.checkout.orderSummary}</div>
@@ -175,10 +181,17 @@ export default function CheckoutPage() {
             <span>−{formatSum(bundleDiscount)}</span>
           </div>
         )}
-        <div className={`flex justify-between font-semibold ${bundleDiscount > 0 ? "" : "border-t border-border pt-3 mt-1"}`}>
+        <div className="flex justify-between text-sm border-t border-border pt-3 mt-1">
+          <span className="text-text-dim">Доставка по Ташкенту</span>
+          <span className={fee === 0 ? "text-green font-medium" : "text-text"}>
+            {fee === 0 ? "Бесплатно" : formatSum(fee)}
+          </span>
+        </div>
+        <div className="flex justify-between font-semibold">
           <span>{t.cart.total}</span>
           <span>{formatSum(total)}</span>
         </div>
+        <div className="text-[13px] text-text-dim mt-1">{DELIVERY_TERMS}</div>
       </div>
 
       {activeBundle && !bundleValid && (
@@ -193,6 +206,8 @@ export default function CheckoutPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={t.checkout.namePlaceholder}
+            name="name"
+            autoComplete="name"
             className="w-full px-4 py-2.5 rounded-xl bg-bg-panel border border-border focus:outline-none focus:ring-2 focus:ring-accent/30"
           />
         </Field>
@@ -203,6 +218,9 @@ export default function CheckoutPage() {
             onChange={(e) => setPhone(maskPhoneInput(e.target.value))}
             placeholder="+998 (XX) XXX-XX-XX"
             inputMode="numeric"
+            type="tel"
+            name="tel"
+            autoComplete="tel"
             className="w-full px-4 py-2.5 rounded-xl bg-bg-panel border border-border focus:outline-none focus:ring-2 focus:ring-accent/30"
           />
         </Field>
@@ -213,6 +231,8 @@ export default function CheckoutPage() {
             onChange={(e) => setAddress(e.target.value)}
             placeholder={t.checkout.addressPlaceholder}
             rows={2}
+            name="street-address"
+            autoComplete="street-address"
             className="w-full px-4 py-2.5 rounded-xl bg-bg-panel border border-border resize-none focus:outline-none focus:ring-2 focus:ring-accent/30"
           />
         </Field>
@@ -256,6 +276,23 @@ export default function CheckoutPage() {
         </Field>
       </div>
 
+      <label className="flex items-start gap-3 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={consent}
+          onChange={(e) => setConsent(e.target.checked)}
+          className="mt-0.5 w-5 h-5 shrink-0 accent-[color:var(--accent)]"
+        />
+        <span className="text-[13px] text-text-dim leading-relaxed">
+          Согласен на обработку персональных данных: имя, телефон и адрес нужны, чтобы собрать
+          и доставить заказ.{" "}
+          <Link href="/privacy" className="link-action">
+            Подробнее
+          </Link>
+        </span>
+      </label>
+      {fieldErrors.consent && <div className="text-xs text-red -mt-3">{fieldErrors.consent}</div>}
+
       {error && (
         <div className="bg-red-bg border border-red/30 text-red rounded-xl px-4 py-2.5 text-sm">
           {error}
@@ -265,10 +302,27 @@ export default function CheckoutPage() {
       <button
         onClick={submit}
         disabled={submitting}
-        className="px-4 py-3.5 rounded-full bg-accent text-white font-semibold disabled:opacity-60 hover:bg-accent-dark transition-colors"
+        className="hidden sm:flex px-4 py-3.5 rounded-lg btn btn-primary font-semibold disabled:opacity-60"
       >
         {submitting ? t.checkout.submitting : t.checkout.submit}
       </button>
+
+      {/* Отступ под липкую панель */}
+      <div className="h-20 sm:hidden" />
+
+      <StickyBar
+        label={t.cart.total}
+        value={formatSum(total)}
+        action={
+          <button
+            onClick={submit}
+            disabled={submitting}
+            className="min-h-[48px] px-6 rounded-lg btn btn-primary font-semibold disabled:opacity-60 shrink-0"
+          >
+            {submitting ? t.checkout.submitting : t.checkout.submit}
+          </button>
+        }
+      />
     </div>
   );
 }

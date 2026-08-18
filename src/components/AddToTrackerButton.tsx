@@ -24,7 +24,7 @@ export default function AddToTrackerButton({ item }: { item: RoutineItem }) {
     <button
       type="button"
       onClick={() => (added ? removeFromRoutine(item.productId) : addToRoutine(item))}
-      className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium border transition-colors self-start ${
+      className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border transition-colors self-start ${
         added
           ? "bg-accent/10 border-accent text-accent"
           : "bg-white border-border text-text hover:border-accent/50"

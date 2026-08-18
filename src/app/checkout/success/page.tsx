@@ -23,7 +23,7 @@ export default async function CheckoutSuccessPage({
       <div className="w-16 h-16 rounded-full bg-green-bg flex items-center justify-center text-green text-2xl animate-check-in">
         ✓
       </div>
-      <h1 className="text-2xl font-semibold tracking-tight">{t.success.title}</h1>
+      <h1 className="display-2">{t.success.title}</h1>
       <p className="text-text-dim">{t.success.thankYou}</p>
 
       <div className="w-full bg-bg-panel rounded-2xl p-5 mt-3 flex flex-col gap-2.5 text-left">
@@ -41,7 +41,7 @@ export default async function CheckoutSuccessPage({
         </div>
       </div>
 
-      <Link href="/catalog" className="mt-4 px-5 py-2.5 rounded-full bg-accent text-white font-semibold hover:bg-accent-dark transition-colors">
+      <Link href="/catalog" className="mt-4 px-5 py-2.5 rounded-lg btn btn-primary font-semibold">
         {t.success.backToCatalog}
       </Link>
     </div>

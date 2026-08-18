@@ -40,7 +40,7 @@ export default function SeasonalAdvisoryCard({ advisory }: { advisory: SeasonalA
       </div>
       <Link
         href={`/catalog?category=${advisory.categorySlug}`}
-        className="shrink-0 self-start sm:self-auto px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-white border border-border text-sm font-semibold hover:bg-bg-panel transition-colors text-center"
+        className="shrink-0 self-start sm:self-auto px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg bg-white border border-border text-sm font-semibold hover:bg-bg-panel transition-colors text-center"
       >
         Смотреть {advisory.categoryName}
       </Link>

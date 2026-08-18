@@ -16,7 +16,7 @@ export default async function BundlesPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex flex-col gap-8">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">{t.bundles.pageTitle}</h1>
+        <h1 className="display-1">{t.bundles.pageTitle}</h1>
         <p className="text-text-dim mt-1 max-w-xl">{t.bundles.pageSubtitle}</p>
       </div>
 
@@ -28,7 +28,7 @@ export default async function BundlesPage() {
             <Link
               key={b.id}
               href={`/bundles/${b.slug}`}
-              className="group flex flex-col bg-white border border-border rounded-3xl overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_32px_rgba(0,0,0,0.09)] hover:-translate-y-1 transition-all duration-300"
+              className="group flex flex-col bg-white border border-border rounded-3xl overflow-hidden hover:border-border-strong transition-colors duration-150"
             >
               <div className="relative aspect-[16/9] bg-bg-panel">
                 <Image
@@ -36,9 +36,9 @@ export default async function BundlesPage() {
                   alt={b.name}
                   fill
                   sizes="(max-width: 640px) 100vw, 480px"
-                  className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  className="object-cover transition-transform duration-200 group-hover:scale-[1.02]"
                 />
-                <span className="absolute top-3 left-3 bg-accent text-white text-xs font-semibold px-3 py-1.5 rounded-full">
+                <span className="absolute top-3 left-3 bg-red text-white text-xs font-semibold px-3 py-1.5 rounded-lg">
                   {t.bundles.save(b.discountPct)}
                 </span>
               </div>

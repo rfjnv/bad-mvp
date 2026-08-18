@@ -41,7 +41,7 @@ export default function AddBundleButton({
     <div className="flex flex-col gap-1.5">
       <button
         onClick={handleAdd}
-        className="px-5 py-3.5 rounded-full bg-accent text-white font-semibold hover:bg-accent-dark transition-colors"
+        className="px-5 py-3.5 rounded-lg btn btn-primary font-semibold"
       >
         {added ? t.bundles.addedBundle : t.bundles.addBundle}
       </button>

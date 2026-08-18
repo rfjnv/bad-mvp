@@ -369,7 +369,7 @@ export default function ProductForm({
 
       <button
         disabled={submitting}
-        className="px-4 py-3 rounded-lg bg-accent text-white font-semibold disabled:opacity-60 w-max"
+        className="px-4 py-3 rounded-lg btn btn-primary font-semibold disabled:opacity-60 w-max"
       >
         {t.common.save}
       </button>
@@ -430,7 +430,7 @@ function CertFields({
       </div>
       <div className="flex items-center gap-3">
         {fileUrl && (
-          <a href={fileUrl} target="_blank" rel="noreferrer" className="text-xs text-accent font-medium">
+          <a href={fileUrl} target="_blank" rel="noreferrer" className="text-xs link-action">
             Открыть загруженный файл
           </a>
         )}

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import ScrollCarousel from "@/components/ScrollCarousel";
 
 export interface BannerData {
   id: string;
@@ -20,13 +21,17 @@ function BannerContent({ banner }: { banner: BannerData }) {
         className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
         priority
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
-      <div className="absolute left-5 right-5 bottom-5 sm:left-10 sm:bottom-10 flex flex-col gap-1">
-        <h2 className="text-white text-xl sm:text-3xl font-semibold tracking-tight drop-shadow-sm">
-          {banner.title}
-        </h2>
+      {/* Плотный градиент снизу: без него читаемость текста держится на удаче */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+      <div className="absolute left-5 right-5 bottom-5 sm:left-10 sm:bottom-10 flex flex-col items-start gap-2 sm:gap-3">
+        <h2 className="text-white display-2 max-w-lg">{banner.title}</h2>
         {banner.subtitle && (
           <p className="text-white/85 text-sm sm:text-base max-w-md">{banner.subtitle}</p>
+        )}
+        {banner.linkUrl && (
+          <span className="mt-1 inline-flex items-center min-h-[44px] px-5 rounded-lg bg-white text-text font-semibold text-sm border border-white transition-colors duration-150 group-hover:bg-transparent group-hover:text-white">
+            Смотреть
+          </span>
         )}
       </div>
     </>
@@ -40,7 +45,11 @@ export default function BannerHero({ banners }: { banners: BannerData[] }) {
   if (banners.length === 0) return null;
 
   return (
-    <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <ScrollCarousel
+      count={banners.length}
+      trackClassName="pb-1 -mx-4 px-4 sm:mx-0 sm:px-0"
+      dotsClassName="sm:hidden"
+    >
       {banners.map((b) =>
         b.linkUrl ? (
           <Link key={b.id} href={b.linkUrl} className={CARD_CLASS}>
@@ -52,6 +61,6 @@ export default function BannerHero({ banners }: { banners: BannerData[] }) {
           </div>
         )
       )}
-    </div>
+    </ScrollCarousel>
   );
 }

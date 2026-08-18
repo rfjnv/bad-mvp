@@ -88,7 +88,7 @@ export default function CatalogFilters({
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={t.catalog.searchPlaceholder}
-          className="w-full px-4 py-2.5 rounded-full bg-bg-panel border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
+          className="w-full px-4 py-2.5 rounded-lg bg-bg-panel border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
         />
       </div>
 
@@ -133,7 +133,7 @@ export default function CatalogFilters({
         <div className="text-xs font-semibold text-text-dim uppercase tracking-wide mb-2.5">
           {t.catalog.filterPrice}
         </div>
-        <div className="flex items-center rounded-full border border-border bg-bg-panel overflow-hidden focus-within:ring-2 focus-within:ring-accent/30">
+        <div className="flex items-center rounded-lg border border-border bg-bg-panel overflow-hidden focus-within:ring-2 focus-within:ring-accent/30">
           <input
             value={priceMin}
             onChange={(e) => setPriceMin(e.target.value.replace(/\D/g, ""))}
@@ -153,7 +153,7 @@ export default function CatalogFilters({
       </div>
 
       {activeCount > 0 && (
-        <button onClick={resetAll} className="text-sm text-accent font-medium text-left">
+        <button onClick={resetAll} className="text-sm link-action text-left min-h-[44px] flex items-center">
           {t.catalog.resetFilters}
         </button>
       )}
@@ -165,7 +165,7 @@ export default function CatalogFilters({
       <div className="md:hidden flex items-center gap-2">
         <button
           onClick={() => setSheetOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white border border-border text-sm font-medium"
+          className="flex items-center gap-2 px-4 min-h-[44px] rounded-lg bg-white border border-border text-sm font-medium"
         >
           <SlidersIcon />
           {t.catalog.filters}
@@ -185,7 +185,7 @@ export default function CatalogFilters({
               <div className="text-lg font-semibold">{t.catalog.filters}</div>
               <button
                 onClick={() => setSheetOpen(false)}
-                className="w-8 h-8 rounded-full bg-bg-panel flex items-center justify-center text-text-dim"
+                className="w-11 h-11 rounded-lg bg-bg-panel flex items-center justify-center text-text-dim"
               >
                 ✕
               </button>
@@ -193,7 +193,7 @@ export default function CatalogFilters({
             {body}
             <button
               onClick={() => setSheetOpen(false)}
-              className="w-full mt-6 px-4 py-3.5 rounded-full bg-accent text-white font-semibold"
+              className="w-full mt-6 px-4 py-3.5 rounded-lg btn btn-primary font-semibold"
             >
               Показать {total} {total === 1 ? "товар" : "товаров"}
             </button>
@@ -212,8 +212,8 @@ function FilterRow({ active, label, onClick }: { active: boolean; label: string;
   return (
     <button
       onClick={onClick}
-      className={`text-left px-3 py-2 rounded-lg text-[14px] transition-colors ${
-        active ? "bg-accent/10 text-accent font-medium" : "text-text hover:bg-bg-panel"
+      className={`text-left px-3 min-h-[44px] flex items-center rounded-lg text-[14px] transition-colors duration-150 ${
+        active ? "bg-bg-panel text-text font-semibold border border-border-strong" : "text-text hover:bg-bg-panel"
       }`}
     >
       {label}

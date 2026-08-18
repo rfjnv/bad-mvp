@@ -46,7 +46,7 @@ export default function TrackerPage() {
           title={t.tracker.empty}
           hint={t.tracker.emptyHint}
           action={
-            <Link href="/catalog" className="px-5 py-2.5 rounded-full bg-accent text-white font-semibold inline-block">
+            <Link href="/catalog" className="px-5 py-2.5 rounded-lg btn btn-primary font-semibold inline-block">
               {t.tracker.goToCatalog}
             </Link>
           }
@@ -60,7 +60,7 @@ export default function TrackerPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 flex flex-col gap-5">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">{t.tracker.title}</h1>
+        <h1 className="display-1">{t.tracker.title}</h1>
         <p className="text-sm text-text-dim mt-1">{t.tracker.subtitle}</p>
       </div>
 

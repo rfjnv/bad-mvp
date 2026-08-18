@@ -92,11 +92,11 @@ export default function SubscriptionForm({
           <div className="text-xl font-semibold tracking-tight">{t.subscription.formTitle}</div>
           <p className="text-sm text-text-dim mt-1">{t.subscription.formSubtitle}</p>
         </div>
-        <div className="flex items-center gap-2 bg-bg-panel rounded-full pl-1 pr-3 py-1 shrink-0">
-          <span className="bg-accent text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+        <div className="flex items-center gap-2 bg-bg-panel rounded-lg pl-1 pr-3 py-1 shrink-0">
+          <span className="bg-accent text-white text-xs font-semibold px-2.5 py-1 rounded-lg">
             {plan.name}
           </span>
-          <a href="#plans" className="text-xs text-accent font-medium">
+          <a href="#plans" className="text-xs link-action">
             Изменить
           </a>
         </div>
@@ -142,7 +142,7 @@ export default function SubscriptionForm({
                 key={goal}
                 type="button"
                 onClick={() => toggleGoal(goal)}
-                className={`px-3.5 py-2 rounded-full text-sm font-medium border transition-colors ${
+                className={`px-3.5 py-2 rounded-lg text-sm font-medium border transition-colors ${
                   active
                     ? "bg-accent/10 text-accent border-accent"
                     : "bg-bg-panel text-text border-border hover:border-accent/50"
@@ -181,7 +181,7 @@ export default function SubscriptionForm({
 
       <button
         disabled={submitting}
-        className="px-4 py-3.5 rounded-full bg-accent text-white font-semibold disabled:opacity-60 hover:bg-accent-dark transition-colors"
+        className="px-4 py-3.5 rounded-lg btn btn-primary font-semibold disabled:opacity-60"
       >
         {submitting ? t.subscription.submitting : `${t.subscription.submit} · ${plan.name}`}
       </button>

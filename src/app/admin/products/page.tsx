@@ -46,7 +46,7 @@ export default function AdminProductsPage() {
         <h1 className="text-xl font-bold">{t.admin.products}</h1>
         <Link
           href="/admin/products/new"
-          className="px-4 py-2 rounded-lg bg-accent text-white font-semibold text-sm"
+          className="px-4 py-2 rounded-lg btn btn-primary font-semibold text-sm"
         >
           {t.common.create}
         </Link>

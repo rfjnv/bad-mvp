@@ -21,7 +21,7 @@ export default function AddToCartButton({
     return (
       <button
         disabled
-        className={`px-3 py-2 rounded-full bg-bg-panel text-text-dim text-sm font-medium cursor-not-allowed ${className ?? ""}`}
+        className={`px-3 min-h-[44px] rounded-lg bg-bg-panel text-text-dim text-sm font-medium cursor-not-allowed ${className ?? ""}`}
       >
         {t.catalog.outOfStock}
       </button>
@@ -37,7 +37,7 @@ export default function AddToCartButton({
         setAdded(true);
         setTimeout(() => setAdded(false), 1200);
       }}
-      className={`px-3 py-2 rounded-full bg-accent text-white text-sm font-semibold hover:bg-accent-dark transition-colors ${added ? "animate-pop" : ""} ${className ?? ""}`}
+      className={`px-3 min-h-[44px] rounded-lg btn ${added ? "btn-primary animate-pop" : "btn-secondary"} text-sm font-semibold ${className ?? ""}`}
     >
       {added ? "Добавлено ✓" : t.catalog.addToCart}
     </button>

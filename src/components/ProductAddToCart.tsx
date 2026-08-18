@@ -3,16 +3,20 @@
 import { useEffect, useState } from "react";
 import { addToCart, getCart, CART_CHANGED_EVENT } from "@/lib/cart";
 import { t } from "@/lib/i18n";
+import { formatSum } from "@/lib/format";
+import StickyBar from "@/components/StickyBar";
 import { findInteractionsForCategory, type InteractionMatch } from "@/lib/compatibility";
 
 export default function ProductAddToCart({
   productId,
   stock,
   categorySlug,
+  price,
 }: {
   productId: string;
   stock: number;
   categorySlug: string;
+  price: number;
 }) {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -48,9 +52,15 @@ export default function ProductAddToCart({
     };
   }, [productId, categorySlug]);
 
+  function add() {
+    addToCart(productId, qty, stock);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1500);
+  }
+
   if (stock <= 0) {
     return (
-      <div className="px-4 py-3 rounded-full bg-bg-panel text-text-dim font-medium text-center">
+      <div className="px-4 py-3 rounded-lg bg-bg-panel text-text-dim font-medium text-center">
         {t.product.outOfStock}
       </div>
     );
@@ -60,16 +70,18 @@ export default function ProductAddToCart({
     <div className="flex flex-col gap-3">
       <div>
         <div className="text-sm text-text-dim mb-1.5">{t.product.quantity}</div>
-        <div className="flex items-center gap-3 w-max border border-border rounded-full overflow-hidden">
+        <div className="flex items-center w-max border border-border rounded-lg overflow-hidden">
           <button
-            className="w-10 h-10 flex items-center justify-center hover:bg-bg-panel transition-colors"
+            aria-label="Уменьшить количество"
+            className="w-12 h-12 flex items-center justify-center hover:bg-bg-panel transition-colors duration-150"
             onClick={() => setQty((q) => Math.max(1, q - 1))}
           >
             −
           </button>
-          <span className="w-8 text-center font-medium">{qty}</span>
+          <span className="w-12 text-center font-medium">{qty}</span>
           <button
-            className="w-10 h-10 flex items-center justify-center hover:bg-bg-panel transition-colors"
+            aria-label="Увеличить количество"
+            className="w-12 h-12 flex items-center justify-center hover:bg-bg-panel transition-colors duration-150"
             onClick={() => setQty((q) => Math.min(stock, q + 1))}
           >
             +
@@ -79,15 +91,26 @@ export default function ProductAddToCart({
       </div>
 
       <button
-        onClick={() => {
-          addToCart(productId, qty, stock);
-          setAdded(true);
-          setTimeout(() => setAdded(false), 1500);
-        }}
-        className={`px-5 py-3.5 rounded-full bg-accent text-white font-semibold hover:bg-accent-dark transition-colors ${added ? "animate-pop" : ""}`}
+        onClick={add}
+        className={`px-5 min-h-[52px] rounded-lg btn btn-primary font-semibold ${added ? "animate-pop" : ""}`}
       >
         {added ? "Добавлено в корзину ✓" : t.product.addToCart}
       </button>
+
+      <StickyBar
+        label={qty > 1 ? `${qty} шт. · итого` : "Цена"}
+        value={formatSum(price * qty)}
+        action={
+          <button
+            onClick={add}
+            className={`min-h-[48px] px-6 rounded-lg btn btn-primary font-semibold shrink-0 ${
+              added ? "animate-pop" : ""
+            }`}
+          >
+            {added ? "Добавлено ✓" : t.catalog.addToCart}
+          </button>
+        }
+      />
 
       {matches.map((m) => (
         <div

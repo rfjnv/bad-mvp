@@ -83,14 +83,14 @@ export default function DocumentsSection({ items }: { items: CertInfo[] }) {
                         href={item.fileUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-xs text-accent font-medium mt-1 inline-block"
+                        className="text-xs link-action mt-1 inline-block"
                       >
                         {t.product.docOpenPdf}
                       </a>
                     ) : (
                       <button
                         onClick={() => setPreview(item.fileUrl)}
-                        className="text-xs text-accent font-medium mt-1"
+                        className="text-xs link-action mt-1"
                       >
                         {t.product.docView}
                       </button>

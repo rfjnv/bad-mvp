@@ -4,6 +4,7 @@ import { checkoutSchema } from "@/lib/validation";
 import { normalizePhone } from "@/lib/format";
 import { nextOrderNumber } from "@/lib/orderNumber";
 import { getPaymentProvider } from "@/lib/payments";
+import { deliveryFee } from "@/lib/delivery";
 
 export async function POST(req: NextRequest) {
   const json = await req.json().catch(() => null);
@@ -62,6 +63,9 @@ export async function POST(req: NextRequest) {
         itemPrices.set(item.productId, unitPrice);
         totalAmount += unitPrice * item.quantity;
       }
+
+      // Доставка считается на сервере от суммы товаров, а не приходит от клиента
+      totalAmount += deliveryFee(totalAmount);
 
       const orderNumber = await nextOrderNumber(tx);
 
