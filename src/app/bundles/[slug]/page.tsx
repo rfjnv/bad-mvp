@@ -68,7 +68,7 @@ export default async function BundlePage({ params }: { params: Promise<{ slug: s
             slug={bundle.slug}
             name={bundle.name}
             discountPct={bundle.discountPct}
-            products={bundle.items.map((i) => ({ id: i.product.id, stock: i.product.stock }))}
+            products={bundle.items.map((i) => ({ slug: i.product.slug, stock: i.product.stock }))}
           />
 
           {synergies.length > 0 && <CompatibilityPanel matches={synergies} />}

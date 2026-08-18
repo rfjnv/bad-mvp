@@ -6,6 +6,7 @@ import CatalogFilters from "./CatalogFilters";
 import CatalogSort from "./CatalogSort";
 import EmptyState from "@/components/EmptyState";
 import Link from "next/link";
+import { findGoal } from "@/lib/goals";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,11 @@ export default async function CatalogPage({
 
   let filtered = allActive;
 
+  // Цель раскрывается в набор категорий: «Плохо сплю» → магний + B-комплекс
+  const goal = findGoal(query.goal);
+  if (goal) {
+    filtered = filtered.filter((p) => goal.categorySlugs.includes(p.category.slug));
+  }
   if (query.category) {
     filtered = filtered.filter((p) => p.category.slug === query.category);
   }
@@ -74,11 +80,23 @@ export default async function CatalogPage({
   const page = Math.min(query.page, totalPages);
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const hasFilters = Boolean(query.q || query.category || query.brand || query.priceMin || query.priceMax);
+  const hasFilters = Boolean(
+    query.q || query.goal || query.category || query.brand || query.priceMin || query.priceMax
+  );
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="display-1 mb-6">{t.catalog.title}</h1>
+      <h1 className="display-1 mb-2">{goal ? goal.title : t.catalog.title}</h1>
+      {goal ? (
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <p className="text-text-dim">{goal.hint}</p>
+          <Link href="/catalog" className="text-sm link-action">
+            Показать весь каталог
+          </Link>
+        </div>
+      ) : (
+        <div className="mb-6" />
+      )}
 
       <div className="flex flex-col md:flex-row gap-8">
         <CatalogFilters categories={categories} brands={brands} total={total} />

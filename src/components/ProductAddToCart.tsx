@@ -8,12 +8,12 @@ import StickyBar from "@/components/StickyBar";
 import { findInteractionsForCategory, type InteractionMatch } from "@/lib/compatibility";
 
 export default function ProductAddToCart({
-  productId,
+  slug,
   stock,
   categorySlug,
   price,
 }: {
-  productId: string;
+  slug: string;
   stock: number;
   categorySlug: string;
   price: number;
@@ -26,7 +26,7 @@ export default function ProductAddToCart({
     let cancelled = false;
 
     async function check() {
-      const cart = getCart().filter((l) => l.productId !== productId);
+      const cart = getCart().filter((l) => l.slug !== slug);
       if (cart.length === 0) {
         setMatches([]);
         return;
@@ -50,10 +50,10 @@ export default function ProductAddToCart({
       cancelled = true;
       window.removeEventListener(CART_CHANGED_EVENT, check);
     };
-  }, [productId, categorySlug]);
+  }, [slug, categorySlug]);
 
   function add() {
-    addToCart(productId, qty, stock);
+    addToCart(slug, qty, stock);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   }

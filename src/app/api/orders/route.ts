@@ -23,9 +23,9 @@ export async function POST(req: NextRequest) {
 
   try {
     const result = await prisma.$transaction(async (tx) => {
-      const productIds = input.items.map((i) => i.productId);
-      const products = await tx.product.findMany({ where: { id: { in: productIds } } });
-      const byId = new Map(products.map((p) => [p.id, p]));
+      const slugs = input.items.map((i) => i.slug);
+      const products = await tx.product.findMany({ where: { slug: { in: slugs } } });
+      const bySlug = new Map(products.map((p) => [p.slug, p]));
 
       // Скидка набора применяется только если ВСЕ товары набора присутствуют
       // в заказе ровно по 1 шт. — пересчитываем на сервере, не доверяя клиенту.
@@ -36,11 +36,16 @@ export async function POST(req: NextRequest) {
           where: { slug: input.appliedBundleSlug },
           include: { items: true },
         });
-        const qtyById = new Map(input.items.map((i) => [i.productId, i.quantity]));
+        const qtyByProductId = new Map(
+          input.items.flatMap((i) => {
+            const p = bySlug.get(i.slug);
+            return p ? [[p.id, i.quantity] as [string, number]] : [];
+          })
+        );
         const bundleValid =
           bundle?.isActive &&
           bundle.items.length > 0 &&
-          bundle.items.every((bi) => qtyById.get(bi.productId) === 1);
+          bundle.items.every((bi) => qtyByProductId.get(bi.productId) === 1);
         if (bundleValid && bundle) {
           discountedIds = new Set(bundle.items.map((i) => i.productId));
           bundleDiscountPct = bundle.discountPct;
@@ -48,20 +53,25 @@ export async function POST(req: NextRequest) {
       }
 
       let totalAmount = 0;
-      const itemPrices = new Map<string, number>();
+      const resolved: { productId: string; quantity: number; unitPrice: number }[] = [];
       for (const item of input.items) {
-        const product = byId.get(item.productId);
+        const product = bySlug.get(item.slug);
         if (!product || !product.isActive) {
-          throw new StockError(`Товар недоступен: ${item.productId}`);
+          throw new StockError(`Товар недоступен: ${item.slug}`);
         }
         if (product.stock < item.quantity) {
           throw new StockError(`Недостаточно товара на складе: ${product.name}`);
         }
-        const unitPrice = discountedIds.has(item.productId)
+        const unitPrice = discountedIds.has(product.id)
           ? Math.round(product.price * (1 - bundleDiscountPct / 100))
           : product.price;
-        itemPrices.set(item.productId, unitPrice);
+        resolved.push({ productId: product.id, quantity: item.quantity, unitPrice });
         totalAmount += unitPrice * item.quantity;
+      }
+
+      // Заказ без товаров не должен превращаться в счёт за одну доставку
+      if (resolved.length === 0 || totalAmount === 0) {
+        throw new StockError("В корзине не осталось доступных товаров");
       }
 
       // Доставка считается на сервере от суммы товаров, а не приходит от клиента
@@ -80,19 +90,19 @@ export async function POST(req: NextRequest) {
           paymentStatus: input.paymentMethod === "CASH" ? "PENDING" : "PENDING",
           totalAmount,
           items: {
-            create: input.items.map((item) => ({
-              productId: item.productId,
-              quantity: item.quantity,
-              priceAtPurchase: itemPrices.get(item.productId)!,
+            create: resolved.map((r) => ({
+              productId: r.productId,
+              quantity: r.quantity,
+              priceAtPurchase: r.unitPrice,
             })),
           },
         },
       });
 
-      for (const item of input.items) {
+      for (const r of resolved) {
         await tx.product.update({
-          where: { id: item.productId },
-          data: { stock: { decrement: item.quantity } },
+          where: { id: r.productId },
+          data: { stock: { decrement: r.quantity } },
         });
       }
 

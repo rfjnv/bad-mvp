@@ -14,16 +14,16 @@ export default function AddToTrackerButton({ item }: { item: RoutineItem }) {
   const [added, setAdded] = useState(false);
 
   useEffect(() => {
-    const update = () => setAdded(isInRoutine(item.productId));
+    const update = () => setAdded(isInRoutine(item.slug));
     update();
     window.addEventListener(TRACKER_CHANGED_EVENT, update);
     return () => window.removeEventListener(TRACKER_CHANGED_EVENT, update);
-  }, [item.productId]);
+  }, [item.slug]);
 
   return (
     <button
       type="button"
-      onClick={() => (added ? removeFromRoutine(item.productId) : addToRoutine(item))}
+      onClick={() => (added ? removeFromRoutine(item.slug) : addToRoutine(item))}
       className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium border transition-colors self-start ${
         added
           ? "bg-accent/10 border-accent text-accent"

@@ -11,7 +11,9 @@ export const telegramSyncRoutineSchema = z.object({
 });
 
 export const checkoutItemSchema = z.object({
-  productId: z.string().min(1),
+  // slug, а не cuid: id пересоздаются при редеплое эфемерной базы,
+  // а корзина у покупателя живёт в localStorage неделями
+  slug: z.string().min(1),
   quantity: z.number().int().positive().max(999),
 });
 
@@ -123,6 +125,7 @@ export const subscriptionStatusSchema = z.object({
 
 export const catalogQuerySchema = z.object({
   q: z.string().optional(),
+  goal: z.string().optional(),
   category: z.string().optional(),
   brand: z.string().optional(),
   priceMin: z.coerce.number().optional(),

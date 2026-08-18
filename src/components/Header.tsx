@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { CART_CHANGED_EVENT, cartCount, getCart } from "@/lib/cart";
+import { CART_CHANGED_EVENT, cartCount, getCart, pruneCart } from "@/lib/cart";
 import { CONTACTS } from "@/lib/contacts";
 import { t } from "@/lib/i18n";
 
@@ -14,6 +14,22 @@ export default function Header() {
   useEffect(() => {
     let prev = cartCount(getCart());
     setCount(prev);
+
+    // Сверяем корзину с каталогом при первой загрузке: если в localStorage
+    // остались товары от прошлого состава базы, бейдж не должен их считать.
+    const lines = getCart();
+    if (lines.length > 0) {
+      fetch("/api/cart/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: lines }),
+      })
+        .then((r) => r.json())
+        .then((data) => pruneCart(data.knownSlugs ?? []))
+        .catch(() => {
+          /* сеть недоступна — оставляем как есть, пересчитаем в следующий раз */
+        });
+    }
 
     const update = () => {
       const next = cartCount(getCart());

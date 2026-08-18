@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getCart, clearCart } from "@/lib/cart";
+import { getCart, clearCart, pruneCart } from "@/lib/cart";
 import { formatSum } from "@/lib/format";
 import { maskPhoneInput } from "@/lib/format";
 import { t } from "@/lib/i18n";
@@ -15,7 +15,7 @@ import { findInteractions } from "@/lib/compatibility";
 import { getActiveBundle, isBundleValid, clearActiveBundle, type ActiveBundle } from "@/lib/bundleCart";
 
 interface CheckedLine {
-  productId: string;
+  slug: string;
   quantity: number;
   product: {
     name: string;
@@ -56,7 +56,10 @@ export default function CheckoutPage() {
       body: JSON.stringify({ items: raw }),
     })
       .then((r) => r.json())
-      .then((data) => setLines(data.lines));
+      .then((data) => {
+        pruneCart(data.knownSlugs ?? []);
+        setLines(data.lines);
+      });
   }, []);
 
   const subtotal =
@@ -70,14 +73,14 @@ export default function CheckoutPage() {
     activeBundle && lines
       ? isBundleValid(
           activeBundle,
-          lines.filter((l) => l.product).map((l) => ({ productId: l.productId, quantity: l.quantity }))
+          lines.filter((l) => l.product).map((l) => ({ slug: l.slug, quantity: l.quantity }))
         )
       : false;
   const bundleDiscount =
     activeBundle && bundleValid && lines
       ? Math.round(
-          activeBundle.productIds.reduce((sum, id) => {
-            const line = lines.find((l) => l.productId === id);
+          activeBundle.productSlugs.reduce((sum: number, s: string) => {
+            const line = lines.find((l) => l.slug === s);
             return sum + (line?.product ? line.product.price : 0);
           }, 0) *
             (activeBundle.discountPct / 100)
@@ -115,7 +118,7 @@ export default function CheckoutPage() {
           paymentMethod,
           items: lines
             .filter((l) => l.product)
-            .map((l) => ({ productId: l.productId, quantity: l.quantity })),
+            .map((l) => ({ slug: l.slug, quantity: l.quantity })),
           appliedBundleSlug: bundleValid ? activeBundle?.slug : undefined,
         }),
       });
@@ -167,7 +170,7 @@ export default function CheckoutPage() {
         {lines.map(
           (l) =>
             l.product && (
-              <div key={l.productId} className="flex justify-between text-sm text-text-dim">
+              <div key={l.slug} className="flex justify-between text-sm text-text-dim">
                 <span>
                   {l.product.name} × {l.quantity}
                 </span>

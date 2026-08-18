@@ -6,7 +6,7 @@ const bodySchema = z.object({
   items: z
     .array(
       z.object({
-        productId: z.string().min(1),
+        slug: z.string().min(1),
         quantity: z.number().int().positive(),
       })
     )
@@ -20,9 +20,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Некорректный запрос" }, { status: 400 });
   }
 
-  const ids = parsed.data.items.map((i) => i.productId);
+  const slugs = parsed.data.items.map((i) => i.slug);
   const products = await prisma.product.findMany({
-    where: { id: { in: ids } },
+    where: { slug: { in: slugs } },
     select: {
       id: true,
       slug: true,
@@ -36,23 +36,27 @@ export async function POST(req: NextRequest) {
       category: { select: { slug: true, name: true } },
     },
   });
-  const byId = new Map(products.map((p) => [p.id, p]));
+  const bySlug = new Map(products.map((p) => [p.slug, p]));
 
-  const lines = parsed.data.items.map((item) => {
-    const product = byId.get(item.productId);
-    if (!product || !product.isActive) {
-      return { productId: item.productId, product: null, quantity: 0, adjusted: true };
-    }
+  // Позиции, которых больше нет в каталоге, не превращаются в строку с нулевой
+  // ценой — они просто не попадают в ответ, а клиент вычищает их из localStorage.
+  const lines = parsed.data.items.flatMap((item) => {
+    const product = bySlug.get(item.slug);
+    if (!product || !product.isActive) return [];
     const clamped = Math.min(item.quantity, product.stock);
-    return {
-      productId: item.productId,
-      product,
-      quantity: clamped,
-      adjusted: clamped !== item.quantity,
-    };
+    return [
+      {
+        slug: item.slug,
+        product,
+        quantity: clamped,
+        adjusted: clamped !== item.quantity,
+      },
+    ];
   });
 
-  const total = lines.reduce((sum, l) => sum + (l.product ? l.product.price * l.quantity : 0), 0);
+  const knownSlugs = lines.map((l) => l.slug);
+  const removedSlugs = slugs.filter((s) => !knownSlugs.includes(s));
+  const total = lines.reduce((sum, l) => sum + l.product.price * l.quantity, 0);
 
-  return NextResponse.json({ lines, total });
+  return NextResponse.json({ lines, total, knownSlugs, removedSlugs });
 }

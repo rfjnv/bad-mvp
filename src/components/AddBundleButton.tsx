@@ -6,7 +6,7 @@ import { setActiveBundle } from "@/lib/bundleCart";
 import { t } from "@/lib/i18n";
 
 interface BundleProductInfo {
-  id: string;
+  slug: string;
   stock: number;
 }
 
@@ -25,13 +25,13 @@ export default function AddBundleButton({
 
   function handleAdd() {
     for (const p of products) {
-      setCartQuantity(p.id, 1, p.stock);
+      setCartQuantity(p.slug, 1, p.stock);
     }
     setActiveBundle({
       slug,
       name,
       discountPct,
-      productIds: products.map((p) => p.id),
+      productSlugs: products.map((p) => p.slug),
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);

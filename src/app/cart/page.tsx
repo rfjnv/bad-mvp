@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { getCart, setCartQuantity, removeFromCart, type CartLine } from "@/lib/cart";
+import { getCart, setCartQuantity, removeFromCart, pruneCart, type CartLine } from "@/lib/cart";
 import { formatSum } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import EmptyState from "@/components/EmptyState";
@@ -20,7 +20,7 @@ import {
 } from "@/lib/bundleCart";
 
 interface CheckedLine {
-  productId: string;
+  slug: string;
   quantity: number;
   adjusted: boolean;
   product: {
@@ -55,6 +55,9 @@ export default function CartPage() {
       body: JSON.stringify({ items: raw }),
     });
     const data = await res.json();
+    // Товары, которых больше нет в каталоге, молча выкидываем из localStorage,
+    // иначе бейдж в шапке считает несуществующие позиции
+    pruneCart(data.knownSlugs ?? []);
     setLines(data.lines);
     setLoading(false);
   }
@@ -74,14 +77,14 @@ export default function CartPage() {
   const bundleValid = activeBundle
     ? isBundleValid(
         activeBundle,
-        lines.filter((l) => l.product).map((l) => ({ productId: l.productId, quantity: l.quantity }))
+        lines.filter((l) => l.product).map((l) => ({ slug: l.slug, quantity: l.quantity }))
       )
     : false;
   const bundleDiscount =
     activeBundle && bundleValid
       ? Math.round(
-          activeBundle.productIds.reduce((sum, id) => {
-            const line = lines.find((l) => l.productId === id);
+          activeBundle.productSlugs.reduce((sum: number, s: string) => {
+            const line = lines.find((l) => l.slug === s);
             return sum + (line?.product ? line.product.price : 0);
           }, 0) *
             (activeBundle.discountPct / 100)
@@ -120,7 +123,7 @@ export default function CartPage() {
         {lines.map((line) =>
           line.product ? (
             <div
-              key={line.productId}
+              key={line.slug}
               className="flex gap-4 bg-white border border-border rounded-2xl p-3.5"
             >
               <Link href={`/product/${line.product.slug}`} className="relative w-20 h-20 shrink-0 rounded-xl overflow-hidden bg-bg-panel">
@@ -139,7 +142,7 @@ export default function CartPage() {
                     <button
                       className="w-11 h-11 flex items-center justify-center hover:bg-bg-panel transition-colors duration-150"
                       onClick={() => {
-                        setCartQuantity(line.productId, line.quantity - 1, line.product!.stock);
+                        setCartQuantity(line.slug, line.quantity - 1, line.product!.stock);
                         refresh();
                       }}
                     >
@@ -149,7 +152,7 @@ export default function CartPage() {
                     <button
                       className="w-11 h-11 flex items-center justify-center hover:bg-bg-panel transition-colors duration-150"
                       onClick={() => {
-                        setCartQuantity(line.productId, line.quantity + 1, line.product!.stock);
+                        setCartQuantity(line.slug, line.quantity + 1, line.product!.stock);
                         refresh();
                       }}
                     >
@@ -163,7 +166,7 @@ export default function CartPage() {
                 aria-label={t.cart.remove}
                 className="w-11 h-11 -mt-1 -mr-1 flex items-start justify-end text-text-dim hover:text-red transition-colors duration-150"
                 onClick={() => {
-                  removeFromCart(line.productId);
+                  removeFromCart(line.slug);
                   refresh();
                 }}
               >

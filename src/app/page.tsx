@@ -9,6 +9,7 @@ import CategoryTile from "@/components/CategoryTile";
 import SeasonalAdvisoryCard from "@/components/SeasonalAdvisory";
 import ScrollReveal from "@/components/ScrollReveal";
 import ScrollCarousel from "@/components/ScrollCarousel";
+import GoalPicker from "@/components/GoalPicker";
 import { getSeasonalAdvisory } from "@/lib/seasonal";
 
 export const dynamic = "force-dynamic";
@@ -48,7 +49,20 @@ export default async function HomePage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex flex-col gap-16">
+      {/* Единственный h1 страницы: он же и есть позиционирование магазина */}
+      <header className="flex flex-col gap-3">
+        <h1 className="display-1 max-w-3xl">Витамины и БАД в Ташкенте — видно, за что вы платите</h1>
+        <p className="text-text-dim max-w-2xl text-[17px]">
+          Оригинальные бренды с документами, цена за действующее вещество у каждого товара
+          и доставка по Ташкенту в день заказа.
+        </p>
+      </header>
+
       {banners.length > 0 && <BannerHero banners={banners} />}
+
+      <ScrollReveal>
+        <GoalPicker />
+      </ScrollReveal>
 
       <ScrollReveal>
         <SeasonalAdvisoryCard advisory={advisory} />

@@ -5,12 +5,12 @@ import { addToCart } from "@/lib/cart";
 import { t } from "@/lib/i18n";
 
 export default function AddToCartButton({
-  productId,
+  slug,
   stock,
   quantity = 1,
   className,
 }: {
-  productId: string;
+  slug: string;
   stock: number;
   quantity?: number;
   className?: string;
@@ -33,7 +33,7 @@ export default function AddToCartButton({
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        addToCart(productId, quantity, stock);
+        addToCart(slug, quantity, stock);
         setAdded(true);
         setTimeout(() => setAdded(false), 1200);
       }}

@@ -55,7 +55,7 @@ export default function TrackerPage() {
     );
   }
 
-  const takenCount = routine.filter((r) => checks.includes(r.productId)).length;
+  const takenCount = routine.filter((r) => checks.includes(r.slug)).length;
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 flex flex-col gap-5">
@@ -75,11 +75,11 @@ export default function TrackerPage() {
 
       <div className="flex flex-col gap-3">
         {routine.map((item) => {
-          const taken = checks.includes(item.productId);
-          const streak = getStreak(item.productId);
+          const taken = checks.includes(item.slug);
+          const streak = getStreak(item.slug);
           return (
             <div
-              key={item.productId}
+              key={item.slug}
               className={`flex items-center gap-4 rounded-2xl p-3.5 border transition-colors ${
                 taken ? "bg-green-bg border-transparent" : "bg-white border-border"
               }`}
@@ -95,7 +95,7 @@ export default function TrackerPage() {
                 <div className="text-xs text-text-dim mt-0.5">{t.tracker.streak(streak)}</div>
               </div>
               <button
-                onClick={() => toggleCheck(item.productId, today)}
+                onClick={() => toggleCheck(item.slug, today)}
                 aria-label={t.tracker.markTaken}
                 className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${
                   taken
@@ -106,7 +106,7 @@ export default function TrackerPage() {
                 <CheckIcon />
               </button>
               <button
-                onClick={() => removeFromRoutine(item.productId)}
+                onClick={() => removeFromRoutine(item.slug)}
                 aria-label={t.tracker.remove}
                 className="shrink-0 text-text-dim hover:text-red transition-colors"
               >

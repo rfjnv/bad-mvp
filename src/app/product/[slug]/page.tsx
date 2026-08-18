@@ -119,7 +119,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </div>
 
           <ProductAddToCart
-            productId={product.id}
+            slug={product.slug}
             stock={product.stock}
             categorySlug={product.category.slug}
             price={product.price}
@@ -127,7 +127,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
           <AddToTrackerButton
             item={{
-              productId: product.id,
               slug: product.slug,
               name: product.name,
               brand: product.brand,

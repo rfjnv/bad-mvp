@@ -79,7 +79,7 @@ export default function ProductCard({ product }: { product: ProductCardData }) {
             {formatPricePerUnitShort(perUnit)}
           </div>
         )}
-        <AddToCartButton productId={product.id} stock={product.stock} className="mt-2.5 w-full" />
+        <AddToCartButton slug={product.slug} stock={product.stock} className="mt-2.5 w-full" />
       </div>
     </Link>
   );
