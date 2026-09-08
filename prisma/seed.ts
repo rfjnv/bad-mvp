@@ -14,6 +14,9 @@ const categories = [
   { slug: "iron", name: "Железо", sortOrder: 8 },
   { slug: "sport", name: "Спортивное питание", sortOrder: 9 },
   { slug: "immunity", name: "Для иммунитета", sortOrder: 10 },
+  // Узбекистан — регион с недостатком йода в почве и воде, из-за чего действует
+  // закон об обязательном йодировании соли. Категория закрывает этот запрос.
+  { slug: "iodine", name: "Йод", sortOrder: 11 },
 ] as const;
 
 interface SeedProduct {
@@ -502,6 +505,57 @@ const products: SeedProduct[] = [
     activeSubstance: "Экстракт эхинацеи",
     activeAmount: 400,
     activeUnit: "мг",
+    servingsPerPackage: 60,
+  },
+
+  // Йод
+  {
+    slug: "now-kelp-150-200",
+    name: "NOW Келп 150 мкг, 200 таб",
+    brand: "NOW Foods",
+    category: "iodine",
+    price: 96000,
+    stock: 40,
+    description:
+      "Йод из бурых водорослей — природная форма для регионов, где морепродуктов в рационе почти нет.",
+    composition: "Порошок бурых водорослей (Ascophyllum nodosum), йод 150 мкг на таблетку.",
+    dosage: "По 1 таблетке в день во время еды.",
+    imageUrl: "/products/now-kelp-150-200.png",
+    activeSubstance: "Йод",
+    activeAmount: 150,
+    activeUnit: "мкг",
+    servingsPerPackage: 200,
+  },
+  {
+    slug: "solaray-iodine-caps-200",
+    name: "Solaray Йод из водорослей 325 мкг, 200 капс",
+    brand: "Solaray",
+    category: "iodine",
+    price: 178000,
+    stock: 22,
+    description: "Повышенная дозировка йода для поддержки щитовидной железы.",
+    composition: "Экстракт ламинарии, йод 325 мкг на капсулу.",
+    dosage: "По 1 капсуле в день. Не превышать дозировку без консультации врача.",
+    imageUrl: "/products/solaray-iodine-caps-200.png",
+    activeSubstance: "Йод",
+    activeAmount: 325,
+    activeUnit: "мкг",
+    servingsPerPackage: 200,
+  },
+  {
+    slug: "life-extension-sea-iodine-60",
+    name: "Life Extension Морской йод 1000 мкг, 60 капс",
+    brand: "Life Extension",
+    category: "iodine",
+    price: 132000,
+    stock: 18,
+    description: "Комплекс йода из морских водорослей для курсового приёма.",
+    composition: "Смесь бурых и красных водорослей, йод 1000 мкг на капсулу.",
+    dosage: "По 1 капсуле в день или по назначению врача.",
+    imageUrl: "/products/life-extension-sea-iodine-60.png",
+    activeSubstance: "Йод",
+    activeAmount: 1000,
+    activeUnit: "мкг",
     servingsPerPackage: 60,
   },
 ];

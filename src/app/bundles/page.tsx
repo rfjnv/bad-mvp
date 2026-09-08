@@ -45,12 +45,25 @@ export default async function BundlesPage() {
               <div className="p-5 flex flex-col gap-2">
                 <div className="font-semibold text-lg">{b.name}</div>
                 <p className="text-sm text-text-dim line-clamp-2">{b.description}</p>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <span className="font-semibold tracking-tight">{formatSum(bundlePrice)}</span>
+                {/* Набор продаёт перечень, а не слово «набор»:
+                    «Витамин C + эхинацея + бузина» понятнее, чем «3 товара» */}
+                <ul className="flex flex-col gap-1.5 m-0 p-0 list-none border-t border-border pt-3 mt-1">
+                  {b.items.map((i) => (
+                    <li key={i.id} className="flex items-baseline justify-between gap-3 text-sm">
+                      <span className="text-text truncate">{i.product.name}</span>
+                      <span className="text-text-dim shrink-0 text-[13px]">
+                        {formatSum(i.product.price)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="flex items-baseline gap-2 mt-2 border-t border-border pt-3">
+                  <span className="text-lg font-semibold tracking-tight">{formatSum(bundlePrice)}</span>
                   <span className="text-sm text-text-dim line-through">{formatSum(normalPrice)}</span>
-                </div>
-                <div className="text-xs text-text-dim">
-                  {b.items.length} {b.items.length === 1 ? "товар" : "товара"}
+                  <span className="text-sm text-red font-medium ml-auto shrink-0">
+                    −{formatSum(normalPrice - bundlePrice)}
+                  </span>
                 </div>
               </div>
             </Link>

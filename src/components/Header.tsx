@@ -62,6 +62,9 @@ export default function Header() {
           <Link href="/catalog" className="hover:text-text transition-colors">
             {t.nav.catalog}
           </Link>
+          <Link href="/podbor" className="hover:text-text transition-colors">
+            Подбор
+          </Link>
           <Link href="/bundles" className="hover:text-text transition-colors">
             {t.bundles.navTitle}
           </Link>
@@ -121,6 +124,7 @@ export default function Header() {
           {[
             { href: "/", label: t.nav.home },
             { href: "/catalog", label: t.nav.catalog },
+            { href: "/podbor", label: "Подбор" },
             { href: "/bundles", label: t.bundles.navTitle },
             { href: "/subscription", label: t.nav.subscription },
             { href: "/tracker", label: t.nav.tracker },

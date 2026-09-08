@@ -15,6 +15,24 @@ export default function GoalPicker() {
         </p>
       </div>
 
+      {/* Второй вход — для тех, кого пока ничего не беспокоит: дефицит от условий
+          жизни человек не чувствует, поэтому спрашивать про симптом бесполезно */}
+      <Link
+        href="/podbor"
+        className="group flex items-center justify-between gap-4 border border-border-strong rounded-2xl p-4 sm:p-5 mb-6 hover:bg-bg-panel transition-colors duration-150"
+      >
+        <span className="flex flex-col gap-1 min-w-0">
+          <span className="font-semibold tracking-tight">Ничего не беспокоит?</span>
+          <span className="text-[13px] sm:text-sm text-text-dim leading-relaxed">
+            Работа в помещении, зима без солнца, город без моря — нехватку от этого не чувствуешь.
+            Проверьте по условиям жизни.
+          </span>
+        </span>
+        <span className="text-text-dim group-hover:text-text transition-colors duration-150 shrink-0">
+          <ArrowIcon />
+        </span>
+      </Link>
+
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 border-t border-l border-border">
         {GOALS.map((goal) => (
           <Link

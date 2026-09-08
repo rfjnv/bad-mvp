@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { t } from "@/lib/i18n";
+import { CONTACTS } from "@/lib/contacts";
 
 export interface CertInfo {
   label: string;
@@ -96,7 +97,17 @@ export default function DocumentsSection({ items }: { items: CertInfo[] }) {
                       </button>
                     )
                   ) : (
-                    <div className="text-xs text-text-dim mt-1">{t.product.docNoFile}</div>
+                    // Раньше здесь было «скан не загружен» — знак доверия работал
+                    // наоборот. Номер сертификата проверяем по реестру, скан
+                    // присылаем по запросу: сомнение превращается в канал связи.
+                    <a
+                      href={CONTACTS.telegramHref}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs link-action mt-1 inline-block"
+                    >
+                      Запросить скан в Telegram
+                    </a>
                   )}
                 </div>
               </div>
