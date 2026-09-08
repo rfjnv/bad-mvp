@@ -79,13 +79,24 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </nav>
 
       <div className="grid sm:grid-cols-2 gap-8 sm:gap-12">
-        <div className="relative aspect-square bg-bg-panel rounded-3xl overflow-hidden">
-          <Image src={product.imageUrl} alt={product.name} fill className="object-cover" priority />
-          {hasDiscount && (
-            <span className="absolute top-4 left-4 bg-red text-white text-sm font-semibold px-3 py-1.5 rounded-lg">
-              −{discountPct}%
-            </span>
-          )}
+        {/* Правая колонка вдвое длиннее фото, поэтому при скролле слева
+            оставалась полоса пустоты. Фото едет вместе со страницей. */}
+        <div className="sm:sticky sm:top-24 self-start w-full">
+          <div className="relative aspect-square bg-bg-panel rounded-3xl overflow-hidden">
+            <Image
+              src={product.imageUrl}
+              alt={product.name}
+              fill
+              sizes="(max-width: 640px) 100vw, 464px"
+              className="object-contain p-6 mix-blend-multiply"
+              priority
+            />
+            {hasDiscount && (
+              <span className="absolute top-4 left-4 bg-red text-white text-sm font-semibold px-3 py-1.5 rounded-lg">
+                −{discountPct}%
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-col gap-5">

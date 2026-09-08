@@ -15,11 +15,13 @@ export default function AddBundleButton({
   name,
   discountPct,
   products,
+  className,
 }: {
   slug: string;
   name: string;
   discountPct: number;
   products: BundleProductInfo[];
+  className?: string;
 }) {
   const [added, setAdded] = useState(false);
 
@@ -38,10 +40,10 @@ export default function AddBundleButton({
   }
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className={`flex flex-col gap-1.5 ${className ?? ""}`}>
       <button
         onClick={handleAdd}
-        className="px-5 py-3.5 rounded-lg btn btn-primary font-semibold"
+        className={`px-5 min-h-[48px] rounded-lg btn font-semibold ${added ? "btn-primary animate-pop" : "btn-primary"}`}
       >
         {added ? t.bundles.addedBundle : t.bundles.addBundle}
       </button>

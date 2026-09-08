@@ -3,6 +3,7 @@ import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { formatSum } from "@/lib/format";
 import { t } from "@/lib/i18n";
+import AddBundleButton from "@/components/AddBundleButton";
 
 export const dynamic = "force-dynamic";
 
@@ -25,12 +26,11 @@ export default async function BundlesPage() {
           const normalPrice = b.items.reduce((sum, i) => sum + i.product.price, 0);
           const bundlePrice = Math.round(normalPrice * (1 - b.discountPct / 100));
           return (
-            <Link
+            <div
               key={b.id}
-              href={`/bundles/${b.slug}`}
               className="group flex flex-col bg-white border border-border rounded-3xl overflow-hidden hover:border-border-strong transition-colors duration-150"
             >
-              <div className="relative aspect-[16/9] bg-bg-panel">
+              <Link href={`/bundles/${b.slug}`} className="relative aspect-[16/9] bg-bg-panel block">
                 <Image
                   src={b.imageUrl}
                   alt={b.name}
@@ -41,9 +41,11 @@ export default async function BundlesPage() {
                 <span className="absolute top-3 left-3 bg-red text-white text-xs font-semibold px-3 py-1.5 rounded-lg">
                   {t.bundles.save(b.discountPct)}
                 </span>
-              </div>
-              <div className="p-5 flex flex-col gap-2">
-                <div className="font-semibold text-lg">{b.name}</div>
+              </Link>
+              <div className="p-5 flex flex-col gap-2 flex-1">
+                <Link href={`/bundles/${b.slug}`} className="font-semibold text-lg">
+                  {b.name}
+                </Link>
                 <p className="text-sm text-text-dim line-clamp-2">{b.description}</p>
                 {/* Набор продаёт перечень, а не слово «набор»:
                     «Витамин C + эхинацея + бузина» понятнее, чем «3 товара» */}
@@ -65,8 +67,23 @@ export default async function BundlesPage() {
                     −{formatSum(normalPrice - bundlePrice)}
                   </span>
                 </div>
+
+                {/* Купить можно прямо отсюда — раньше ради заказа
+                    приходилось проваливаться в карточку набора */}
+                <div className="mt-auto pt-3">
+                  <AddBundleButton
+                    slug={b.slug}
+                    name={b.name}
+                    discountPct={b.discountPct}
+                    products={b.items.map((i) => ({
+                      slug: i.product.slug,
+                      stock: i.product.stock,
+                    }))}
+                    className="w-full"
+                  />
+                </div>
               </div>
-            </Link>
+            </div>
           );
         })}
       </div>
