@@ -1,3 +1,18 @@
+import { createHash } from "crypto";
+
+/**
+ * Telegram принимает в secret_token только [A-Za-z0-9_-], а значение,
+ * которое генерирует Render (generateValue: true в render.yaml), может
+ * содержать другие символы — setWebhook падает с "illegal characters".
+ * Берём hex-хеш сырого секрета: всегда валиден, детерминирован, доступен
+ * и вебхуку (сравнение заголовка), и скрипту регистрации.
+ */
+export function getWebhookSecretToken(): string {
+  const raw = process.env.TELEGRAM_WEBHOOK_SECRET || "";
+  if (!raw) return "";
+  return createHash("sha256").update(raw).digest("hex");
+}
+
 export interface TelegramConfig {
   /** Нет токена — сообщения никуда не уходят, только печатаются в лог */
   sandbox: boolean;

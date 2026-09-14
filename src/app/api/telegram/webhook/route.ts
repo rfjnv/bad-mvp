@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendTelegramMessage, getTelegramConfig } from "@/lib/telegram";
+import { sendTelegramMessage, getTelegramConfig, getWebhookSecretToken } from "@/lib/telegram";
 
 /**
  * Вебхук бота. Единственная его задача — довести /start <token> до
@@ -11,7 +11,7 @@ import { sendTelegramMessage, getTelegramConfig } from "@/lib/telegram";
  */
 export async function POST(req: NextRequest) {
   const { botToken } = getTelegramConfig();
-  const secret = process.env.TELEGRAM_WEBHOOK_SECRET || "";
+  const secret = getWebhookSecretToken();
   if (secret && req.headers.get("x-telegram-bot-api-secret-token") !== secret) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }

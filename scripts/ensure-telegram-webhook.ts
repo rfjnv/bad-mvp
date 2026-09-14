@@ -6,9 +6,15 @@
  * Запускается автоматически при каждом деплое (см. render.yaml), плюс
  * доступен вручную: npm run telegram:webhook
  */
+import { createHash } from "crypto";
+
 const botToken = process.env.TELEGRAM_BOT_TOKEN || "";
 const siteUrl = (process.env.PUBLIC_SITE_URL || process.env.RENDER_EXTERNAL_URL || "").replace(/\/$/, "");
-const secret = process.env.TELEGRAM_WEBHOOK_SECRET || "";
+const rawSecret = process.env.TELEGRAM_WEBHOOK_SECRET || "";
+// Telegram принимает в secret_token только [A-Za-z0-9_-] — значение от
+// Render (generateValue: true) может этому не соответствовать, поэтому
+// шлём hex-хеш сырого секрета (совпадает с src/lib/telegram.ts::getWebhookSecretToken)
+const secret = rawSecret ? createHash("sha256").update(rawSecret).digest("hex") : "";
 
 async function main() {
   if (!botToken) {
