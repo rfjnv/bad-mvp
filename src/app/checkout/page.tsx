@@ -123,6 +123,7 @@ export default function CheckoutPage() {
             .map((l) => ({ slug: l.slug, quantity: l.quantity })),
           appliedBundleSlug: bundleValid ? activeBundle?.slug : undefined,
           sessionId: getSessionId() || undefined,
+          repeatOfId: (typeof window !== "undefined" && localStorage.getItem("bad-mvp-repeat-of")) || undefined,
         }),
       });
       const data = await res.json();
@@ -133,6 +134,7 @@ export default function CheckoutPage() {
       }
       clearCart();
       clearActiveBundle();
+      localStorage.removeItem("bad-mvp-repeat-of");
       if (data.paymentUrl) {
         router.push(data.paymentUrl);
       } else {

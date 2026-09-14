@@ -1,0 +1,26 @@
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/currentUser";
+
+const schema = z.object({
+  remindersEnabled: z.boolean().optional(),
+  remindDaysBefore: z.number().int().min(1).max(30).optional(),
+  remindHour: z.number().int().min(0).max(23).optional(),
+  phone: z.string().trim().max(32).nullable().optional(),
+});
+
+/** Настройки напоминаний «банка заканчивается» */
+export async function PATCH(req: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: "Нужен вход" }, { status: 401 });
+  const parsed = schema.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) return NextResponse.json({ error: "Некорректные настройки" }, { status: 400 });
+  const updated = await prisma.user.update({ where: { id: user.id }, data: parsed.data });
+  return NextResponse.json({
+    remindersEnabled: updated.remindersEnabled,
+    remindDaysBefore: updated.remindDaysBefore,
+    remindHour: updated.remindHour,
+    phone: updated.phone,
+  });
+}

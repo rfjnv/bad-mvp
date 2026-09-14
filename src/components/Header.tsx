@@ -4,12 +4,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CART_CHANGED_EVENT, cartCount, getCart, pruneCart } from "@/lib/cart";
 import { CONTACTS } from "@/lib/contacts";
+import { useUser } from "@/lib/useUser";
 import { t } from "@/lib/i18n";
 
 export default function Header() {
   const [count, setCount] = useState(0);
   const [bump, setBump] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { user } = useUser();
 
   useEffect(() => {
     let prev = cartCount(getCart());
@@ -77,6 +79,13 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-1 sm:gap-2">
+          <Link
+            href={user ? "/account" : "/account?login=1"}
+            className="hidden sm:flex items-center gap-2 h-11 px-3 rounded-lg hover:bg-bg-panel transition-colors duration-150 text-[15px]"
+          >
+            <UserIcon />
+            <span className="max-w-[120px] truncate">{user ? user.firstName : "Войти"}</span>
+          </Link>
           <a
             href={CONTACTS.phoneHref}
             className="flex items-center justify-center w-11 h-11 rounded-lg hover:bg-bg-panel transition-colors duration-150"
@@ -128,6 +137,7 @@ export default function Header() {
             { href: "/bundles", label: t.bundles.navTitle },
             { href: "/subscription", label: t.nav.subscription },
             { href: "/tracker", label: t.nav.tracker },
+            { href: "/account", label: user ? `Кабинет · ${user.firstName}` : "Войти через Telegram" },
           ].map((item) => (
             <Link
               key={item.href}
@@ -185,6 +195,15 @@ function TelegramIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
       <path d="M21.9 4.3 18.8 19c-.2 1-.9 1.3-1.7.8l-4.7-3.5-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.8L18.1 6c.4-.3-.1-.5-.6-.2L6.6 12.7l-4.7-1.5c-1-.3-1-1 .2-1.5l18.4-7.1c.9-.3 1.6.2 1.4 1.7Z" />
+    </svg>
+  );
+}
+
+function UserIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
     </svg>
   );
 }

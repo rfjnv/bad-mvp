@@ -79,6 +79,11 @@ function writeHistory(history: Record<string, string[]>): void {
   notify();
 }
 
+/** Вся история отметок — для переноса в аккаунт */
+export function getAllHistory(): Record<string, string[]> {
+  return readHistory();
+}
+
 export function getChecksForDate(date: string): string[] {
   return readHistory()[date] ?? [];
 }

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { formatSum } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { PAYMENT_STATUS_LABELS } from "@/lib/i18n";
+import ConnectTelegramPrompt from "@/components/ConnectTelegramPrompt";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,8 @@ export default async function CheckoutSuccessPage({
           <span className="font-semibold">{PAYMENT_STATUS_LABELS[order.paymentStatus]}</span>
         </div>
       </div>
+
+      <ConnectTelegramPrompt />
 
       <Link href="/catalog" className="mt-4 px-5 py-2.5 rounded-lg btn btn-primary font-semibold">
         {t.success.backToCatalog}

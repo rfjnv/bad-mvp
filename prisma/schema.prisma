@@ -69,18 +69,18 @@ model Category {
 }
 
 model Product {
-  id                      String       @id @default(cuid())
-  slug                    String       @unique
+  id                      String        @id @default(cuid())
+  slug                    String        @unique
   name                    String
   brand                   String
-  category                Category     @relation(fields: [categoryId], references: [id])
+  category                Category      @relation(fields: [categoryId], references: [id])
   categoryId              String
   description             String
   composition             String
   dosage                  String
   price                   Int
   oldPrice                Int?
-  stock                   Int          @default(0)
+  stock                   Int           @default(0)
   imageUrl                String
   sesCertNumber           String?
   sesCertFileUrl          String?
@@ -101,11 +101,13 @@ model Product {
   /// Единиц в день по инструкции. durationDays = unitsPerPack / dailyDose
   /// считается в src/lib/duration.ts — одно место вместо хранимой копии.
   dailyDose               Float?
-  isActive                Boolean      @default(true)
-  createdAt               DateTime     @default(now())
-  updatedAt               DateTime     @updatedAt
+  isActive                Boolean       @default(true)
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
   orderItems              OrderItem[]
   bundleItems             BundleItem[]
+  routineItems            RoutineItem[]
+  intakeLogs              IntakeLog[]
 
   @@index([categoryId])
 }
@@ -128,8 +130,12 @@ model Order {
   repeatToken     String?       @unique
   /// Если заказ сделан со страницы повтора — ссылка на исходный, для конверсии
   repeatOfId      String?
+  user            User?         @relation(fields: [userId], references: [id])
+  userId          String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+
+  @@index([userId])
 }
 
 model OrderItem {
@@ -203,6 +209,8 @@ model TelegramSubscriber {
   id              String   @id @default(cuid())
   deviceId        String   @unique
   chatId          String?
+  /// Привязка к аккаунту после входа через Telegram
+  userId          String?
   routineSnapshot String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -258,4 +266,58 @@ model Reminder {
   updatedAt     DateTime       @updatedAt
 
   @@index([status, dueAt])
+}
+
+/// Покупатель, вошедший через Telegram. Пароля нет: личность подтверждает
+/// подпись Telegram Login Widget (HMAC на токене бота), проверенная на сервере.
+model User {
+  id               String        @id @default(cuid())
+  /// Telegram user id. Строка, а не Int: id уже превышают 2^31
+  telegramId       String        @unique
+  firstName        String
+  username         String?
+  photoUrl         String?
+  phone            String?
+  /// Настройки напоминаний «банка заканчивается»
+  remindersEnabled Boolean       @default(true)
+  remindDaysBefore Int           @default(7)
+  /// Час отправки по Ташкенту, 0–23
+  remindHour       Int           @default(10)
+  createdAt        DateTime      @default(now())
+  lastLoginAt      DateTime      @default(now())
+  orders           Order[]
+  routine          RoutineItem[]
+  intake           IntakeLog[]
+}
+
+/// Товар в списке приёма пользователя. Серверная замена localStorage —
+/// переносится между устройствами и даёт канал для напоминаний.
+model RoutineItem {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  /// Своя доза, если отличается от дозы товара по умолчанию
+  dailyDose Float?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
+}
+
+/// Отметка «принято» за день. Дата — строка YYYY-MM-DD по локальному дню
+/// пользователя, чтобы полночь по UTC не резала серии.
+model IntakeLog {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  date      String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId, date])
+  @@index([userId, date])
 }

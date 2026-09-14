@@ -8,6 +8,7 @@ import { deliveryFee } from "@/lib/delivery";
 import { notifyShop, buildOrderNotification } from "@/lib/telegram";
 import { computeDuration, expectedFinishDate } from "@/lib/duration";
 import { randomBytes } from "crypto";
+import { getCurrentUser } from "@/lib/currentUser";
 
 export async function POST(req: NextRequest) {
   const json = await req.json().catch(() => null);
@@ -23,6 +24,9 @@ export async function POST(req: NextRequest) {
   if (!phone) {
     return NextResponse.json({ error: "Неверный формат телефона" }, { status: 400 });
   }
+
+  // Гостевой заказ работает как раньше; вошедший через Telegram получает заказ в кабинет
+  const currentUser = await getCurrentUser();
 
   try {
     const result = await prisma.$transaction(async (tx) => {
@@ -99,6 +103,7 @@ export async function POST(req: NextRequest) {
           // Токен для страницы «Повторить заказ» из напоминания — без пароля
           repeatToken: randomBytes(24).toString("base64url"),
           repeatOfId: input.repeatOfId ?? null,
+          userId: currentUser?.id ?? null,
           items: {
             create: resolved.map((r) => ({
               productId: r.productId,
