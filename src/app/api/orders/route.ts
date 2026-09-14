@@ -10,6 +10,8 @@ import { computeDuration, expectedFinishDate } from "@/lib/duration";
 import { randomBytes } from "crypto";
 import { getCurrentUser } from "@/lib/currentUser";
 import { markRepeated } from "@/lib/reminders";
+import { cookies } from "next/headers";
+import { SESSION_COOKIE, verifySessionToken } from "@/lib/session";
 
 export async function POST(req: NextRequest) {
   const json = await req.json().catch(() => null);
@@ -21,6 +23,19 @@ export async function POST(req: NextRequest) {
     );
   }
   const input = parsed.data;
+
+  // Онлайн-оплата не принимает реальные платежи, пока нет боевых ключей
+  // (см. src/app/payment/process) — на витрине способ вообще не выбрать,
+  // но раз проверка только на клиенте ничего не стоит, дублируем на сервере.
+  // Исключение — демо-показ: включённый флаг и админская сессия.
+  if (input.paymentMethod !== "CASH") {
+    const demoAllowed =
+      process.env.DEMO_PAYMENTS_ENABLED === "1" &&
+      (await verifySessionToken((await cookies()).get(SESSION_COOKIE)?.value)) !== null;
+    if (!demoAllowed) {
+      return NextResponse.json({ error: "Онлайн-оплата скоро будет доступна, пока — оплата курьеру" }, { status: 400 });
+    }
+  }
   const phone = normalizePhone(input.customerPhone);
   if (!phone) {
     return NextResponse.json({ error: "Неверный формат телефона" }, { status: 400 });

@@ -37,7 +37,6 @@ export default function CheckoutPage() {
   const [phone, setPhone] = useState("+998");
   const [address, setAddress] = useState("");
   const [comment, setComment] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH");
   const [consent, setConsent] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
@@ -117,7 +116,7 @@ export default function CheckoutPage() {
           customerPhone: phone,
           customerAddress: address,
           comment,
-          paymentMethod,
+          paymentMethod: "CASH",
           items: lines
             .filter((l) => l.product)
             .map((l) => ({ slug: l.slug, quantity: l.quantity })),
@@ -257,28 +256,24 @@ export default function CheckoutPage() {
 
         <Field label={t.checkout.paymentMethod}>
           <div className="flex flex-col gap-2">
+            <label className="flex items-center gap-3 px-4 py-3.5 rounded-xl border cursor-pointer transition-colors border-accent bg-accent/5">
+              <input type="radio" name="paymentMethod" checked readOnly className="accent-[color:var(--accent)]" />
+              {t.checkout.paymentCash}
+            </label>
             {(
               [
-                ["CASH", t.checkout.paymentCash],
                 ["PAYME", t.checkout.paymentPayme],
                 ["CLICK", t.checkout.paymentClick],
               ] as [PaymentMethod, string][]
             ).map(([value, label]) => (
-              <label
+              <div
                 key={value}
-                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl border cursor-pointer transition-colors ${
-                  paymentMethod === value ? "border-accent bg-accent/5" : "border-border bg-bg-panel"
-                }`}
+                className="flex items-center gap-3 px-4 py-3.5 rounded-xl border border-border bg-bg-panel-2 opacity-60 cursor-not-allowed"
               >
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  checked={paymentMethod === value}
-                  onChange={() => setPaymentMethod(value)}
-                  className="accent-[color:var(--accent)]"
-                />
+                <input type="radio" name="paymentMethod" disabled className="accent-[color:var(--accent)]" />
                 {label}
-              </label>
+                <span className="ml-auto text-xs text-text-dim">скоро</span>
+              </div>
             ))}
           </div>
         </Field>

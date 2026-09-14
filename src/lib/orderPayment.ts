@@ -6,9 +6,10 @@ import { notifyShop, buildPaymentNotification } from "@/lib/telegram";
  *
  * Провайдеры присылают вебхуки повторно (Payme и Click делают это штатно),
  * поэтому уведомление магазину уходит только при реальном переходе
- * в PAID — уже оплаченный заказ второй раз не объявляем.
+ * в PAID — уже оплаченный заказ второй раз не объявляем. DEMO_PAID никогда
+ * не шлёт «оплачен» магазину: деньги не двигались, это не финансовое событие.
  */
-export async function applyPaymentResult(orderId: string, status: "PAID" | "FAILED") {
+export async function applyPaymentResult(orderId: string, status: "PAID" | "FAILED" | "DEMO_PAID") {
   const before = await prisma.order.findUnique({
     where: { id: orderId },
     select: { paymentStatus: true },

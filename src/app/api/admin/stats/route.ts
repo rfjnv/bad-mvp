@@ -17,12 +17,16 @@ export async function GET() {
   const week = daysAgo(7);
   const month = daysAgo(30);
 
+  // Демо-оплата (paymentStatus DEMO_PAID) — не деньги, не должна попадать
+  // ни в счётчики заказов, ни в выручку, ни в топ товаров.
+  const excludeDemo = { paymentStatus: { not: "DEMO_PAID" as const } };
+
   const [ordersToday, ordersWeek, ordersMonth, monthOrders] = await Promise.all([
-    prisma.order.count({ where: { createdAt: { gte: today } } }),
-    prisma.order.count({ where: { createdAt: { gte: week } } }),
-    prisma.order.count({ where: { createdAt: { gte: month } } }),
+    prisma.order.count({ where: { createdAt: { gte: today }, ...excludeDemo } }),
+    prisma.order.count({ where: { createdAt: { gte: week }, ...excludeDemo } }),
+    prisma.order.count({ where: { createdAt: { gte: month }, ...excludeDemo } }),
     prisma.order.findMany({
-      where: { createdAt: { gte: month }, status: { not: "CANCELLED" } },
+      where: { createdAt: { gte: month }, status: { not: "CANCELLED" }, ...excludeDemo },
       include: { items: true },
     }),
   ]);

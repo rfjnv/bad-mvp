@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { orderStatusSchema } from "@/lib/validation";
 import { computeDuration, expectedFinishDate } from "@/lib/duration";
-import { getPaymentProvider } from "@/lib/payments";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -11,15 +10,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     include: { items: { include: { product: true, reminder: true } } },
   });
   if (!order) return NextResponse.json({ error: "Заказ не найден" }, { status: 404 });
-
-  // Пока нет боевых ключей провайдера, экран оплаты — макет для показов
-  // (см. src/app/payment/process), а не реальное списание. Явно
-  // помечаем в админке, чтобы это не приняли за настоящую выручку.
-  const paymentIsMock =
-    (order.paymentMethod === "PAYME" || order.paymentMethod === "CLICK") &&
-    getPaymentProvider(order.paymentMethod).sandbox;
-
-  return NextResponse.json({ ...order, paymentIsMock });
+  return NextResponse.json(order);
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

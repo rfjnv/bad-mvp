@@ -214,6 +214,7 @@ export const t = {
     payPending: "Ожидает",
     payPaid: "Оплачен",
     payFailed: "Ошибка оплаты",
+    payDemoPaid: "Демо-оплата (деньги не списаны)",
   },
 } as const;
 
@@ -229,6 +230,7 @@ export const PAYMENT_STATUS_LABELS: Record<string, string> = {
   PENDING: t.admin.payPending,
   PAID: t.admin.payPaid,
   FAILED: t.admin.payFailed,
+  DEMO_PAID: t.admin.payDemoPaid,
 };
 
 export const PAYMENT_METHOD_LABELS: Record<string, string> = {

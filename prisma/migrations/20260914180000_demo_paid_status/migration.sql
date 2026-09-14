@@ -1,0 +1,1 @@
+ALTER TYPE "PaymentStatus" ADD VALUE 'DEMO_PAID';
