@@ -1,5 +1,12 @@
 export interface TelegramConfig {
+  /** Нет токена — сообщения никуда не уходят, только печатаются в лог */
   sandbox: boolean;
+  /**
+   * Можно ли выдать покупателю ссылку t.me/<bot>?start=… для привязки
+   * напоминаний. Для этого нужен ещё и username бота; уведомлениям
+   * магазину он не нужен — им хватает токена.
+   */
+  canLink: boolean;
   botToken: string;
   botUsername: string;
 }
@@ -7,7 +14,12 @@ export interface TelegramConfig {
 export function getTelegramConfig(): TelegramConfig {
   const botToken = process.env.TELEGRAM_BOT_TOKEN || "";
   const botUsername = process.env.TELEGRAM_BOT_USERNAME || "";
-  return { sandbox: !botToken || !botUsername, botToken, botUsername };
+  return {
+    sandbox: !botToken,
+    canLink: Boolean(botToken && botUsername),
+    botToken,
+    botUsername,
+  };
 }
 
 export interface SendMessageResult {

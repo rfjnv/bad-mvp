@@ -5,8 +5,8 @@ import { getTelegramConfig } from "@/lib/telegram";
 
 /** Только для песочницы: боевой бот недоступен, эмулируем подключение для демонстрации. */
 export async function POST(req: NextRequest) {
-  const { sandbox } = getTelegramConfig();
-  if (!sandbox) {
+  const { canLink } = getTelegramConfig();
+  if (canLink) {
     return NextResponse.json({ error: "Песочница отключена — настроен боевой Telegram-бот" }, { status: 403 });
   }
 

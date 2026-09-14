@@ -17,12 +17,14 @@ export async function POST(req: NextRequest) {
     update: {},
   });
 
-  const { sandbox, botUsername } = getTelegramConfig();
-  const deepLink = sandbox ? null : `https://t.me/${botUsername}?start=${deviceId}`;
+  // Для ссылки-привязки нужен username бота; без него клиент работает
+  // в песочнице, даже если токен задан и уведомления магазину уже уходят.
+  const { canLink, botUsername } = getTelegramConfig();
+  const deepLink = canLink ? `https://t.me/${botUsername}?start=${deviceId}` : null;
 
   return NextResponse.json({
     connected: Boolean(subscriber.chatId),
-    sandbox,
+    sandbox: !canLink,
     deepLink,
   });
 }
