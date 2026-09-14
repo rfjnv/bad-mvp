@@ -8,6 +8,7 @@ interface Category {
   slug: string;
   name: string;
   sortOrder: number;
+  formGuide: string | null;
 }
 
 export default function AdminCategoriesPage() {
@@ -69,6 +70,14 @@ export default function AdminCategoriesPage() {
     refresh();
   }
 
+  async function updateFormGuide(id: string, value: string) {
+    await fetch(`/api/admin/categories/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ formGuide: value || null }),
+    });
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-xl font-bold">{t.admin.categories}</h1>
@@ -109,23 +118,33 @@ export default function AdminCategoriesPage() {
       ) : (
         <div className="bg-bg-panel border border-border rounded-xl divide-y divide-border">
           {categories.map((c) => (
-            <div key={c.id} className="flex items-center gap-3 px-4 py-3">
-              <div className="flex-1">
-                <div className="font-medium text-sm">{c.name}</div>
-                <div className="text-xs text-text-dim">{c.slug}</div>
+            <div key={c.id} className="flex flex-col gap-2 px-4 py-3">
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <div className="font-medium text-sm">{c.name}</div>
+                  <div className="text-xs text-text-dim">{c.slug}</div>
+                </div>
+                <input
+                  type="number"
+                  defaultValue={c.sortOrder}
+                  onBlur={(e) => updateSort(c.id, Number(e.target.value))}
+                  className="w-16 px-2 py-1 rounded-lg bg-bg-panel-2 border border-border text-sm"
+                />
+                <button
+                  onClick={() => remove(c.id)}
+                  className="text-red text-sm font-medium"
+                >
+                  {t.common.delete}
+                </button>
               </div>
-              <input
-                type="number"
-                defaultValue={c.sortOrder}
-                onBlur={(e) => updateSort(c.id, Number(e.target.value))}
-                className="w-16 px-2 py-1 rounded-lg bg-bg-panel-2 border border-border text-sm"
+              <textarea
+                defaultValue={c.formGuide ?? ""}
+                onBlur={(e) => updateFormGuide(c.id, e.target.value)}
+                placeholder="«Какая форма для чего» — короткий текст под фильтром категории (необязательно)"
+                rows={2}
+                maxLength={1000}
+                className="w-full px-3 py-2 rounded-lg bg-bg-panel-2 border border-border text-sm resize-none"
               />
-              <button
-                onClick={() => remove(c.id)}
-                className="text-red text-sm font-medium"
-              >
-                {t.common.delete}
-              </button>
             </div>
           ))}
         </div>

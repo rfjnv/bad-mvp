@@ -48,6 +48,7 @@ export const categorySchema = z.object({
     .regex(/^[a-z0-9-]+$/, "Только латиница, цифры и дефис"),
   name: z.string().trim().min(1, "Укажите название"),
   sortOrder: z.number().int().default(0),
+  formGuide: z.string().trim().max(1000).nullable().optional(),
 });
 
 export const productSchema = z.object({
@@ -81,6 +82,8 @@ export const productSchema = z.object({
   unitsPerPack: z.number().int().positive().nullable().optional(),
   unitType: z.enum(["CAPSULE", "TABLET", "GRAM", "ML", "SCOOP"]).nullable().optional(),
   dailyDose: z.number().positive().max(100).nullable().optional(),
+  form: z.string().trim().max(60).nullable().optional(),
+  formNote: z.string().trim().max(300).nullable().optional(),
   isActive: z.boolean().default(true),
 });
 export type ProductInput = z.infer<typeof productSchema>;
@@ -137,6 +140,6 @@ export const catalogQuerySchema = z.object({
   brand: z.string().optional(),
   priceMin: z.coerce.number().optional(),
   priceMax: z.coerce.number().optional(),
-  sort: z.enum(["price_asc", "price_desc", "name_asc"]).optional(),
+  sort: z.enum(["price_asc", "price_desc", "name_asc", "value_asc"]).optional(),
   page: z.coerce.number().int().positive().optional().default(1),
 });

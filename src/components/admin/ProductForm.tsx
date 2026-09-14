@@ -40,6 +40,8 @@ export interface ProductFormValues {
   unitsPerPack: number | null;
   unitType: UnitType | "";
   dailyDose: number | null;
+  form: string;
+  formNote: string;
   isActive: boolean;
 }
 
@@ -70,6 +72,8 @@ const EMPTY: ProductFormValues = {
   unitsPerPack: null,
   unitType: "",
   dailyDose: null,
+  form: "",
+  formNote: "",
   isActive: true,
 };
 
@@ -145,6 +149,8 @@ export default function ProductForm({
       unitsPerPack: values.unitsPerPack || null,
       unitType: values.unitType || null,
       dailyDose: values.dailyDose || null,
+      form: values.form || null,
+      formNote: values.formNote || null,
     };
 
     const res = await fetch(values.id ? `/api/admin/products/${values.id}` : "/api/admin/products", {
@@ -398,6 +404,35 @@ export default function ProductForm({
             </p>
           );
         })()}
+      </div>
+
+      <div className="border-t border-border pt-4">
+        <div className="text-sm font-semibold mb-3">
+          Форма вещества <span className="text-text-dim font-normal">(необязательно)</span>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Field label="Форма">
+            <input
+              value={values.form}
+              onChange={(e) => set("form", e.target.value)}
+              placeholder="Глицинат"
+              className="w-full px-3 py-2 rounded-lg bg-bg-panel-2 border border-border"
+            />
+          </Field>
+          <Field label="Почему эта форма дороже/дешевле">
+            <input
+              value={values.formNote}
+              onChange={(e) => set("formNote", e.target.value)}
+              placeholder="Мягче для ЖКТ, чем другие формы"
+              maxLength={300}
+              className="w-full px-3 py-2 rounded-lg bg-bg-panel-2 border border-border"
+            />
+          </Field>
+        </div>
+        <p className="text-xs text-text-dim mt-2">
+          Заполните, если в категории есть несколько форм одного вещества (магний, цинк, железо,
+          йод, коллаген) — иначе разница в цене за мг выглядит непонятной.
+        </p>
       </div>
 
       <Field label="Изображение">

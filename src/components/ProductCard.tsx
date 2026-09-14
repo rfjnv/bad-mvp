@@ -21,7 +21,14 @@ export interface ProductCardData {
   servingsPerPackage?: number | null;
 }
 
-export default function ProductCard({ product }: { product: ProductCardData }) {
+export default function ProductCard({
+  product,
+  bestValue = false,
+}: {
+  product: ProductCardData;
+  /** Минимальная цена за действующее вещество в своей категории */
+  bestValue?: boolean;
+}) {
   const outOfStock = product.stock <= 0;
   const hasDiscount = Boolean(product.oldPrice && product.oldPrice > product.price);
   const discountPct = hasDiscount
@@ -75,8 +82,13 @@ export default function ProductCard({ product }: { product: ProductCardData }) {
           )}
         </div>
         {perUnit && (
-          <div className="text-[13px] font-medium text-text border-l-2 border-border-strong pl-2 mt-0.5">
+          <div
+            className={`text-[13px] font-medium pl-2 mt-0.5 border-l-2 ${
+              bestValue ? "border-green text-green" : "border-border-strong text-text"
+            }`}
+          >
             {formatPricePerUnitShort(perUnit)}
+            {bestValue && <span className="block text-[11px] font-semibold">Лучшая цена в категории</span>}
           </div>
         )}
         <AddToCartButton slug={product.slug} stock={product.stock} className="mt-2.5 w-full" />

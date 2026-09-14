@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { productSchema } from "@/lib/validation";
+import { invalidateBestValue } from "@/lib/bestValue";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
@@ -38,5 +39,6 @@ export async function POST(req: NextRequest) {
   }
 
   const product = await prisma.product.create({ data: parsed.data });
+  invalidateBestValue();
   return NextResponse.json(product, { status: 201 });
 }

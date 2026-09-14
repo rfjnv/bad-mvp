@@ -1,0 +1,189 @@
+/**
+ * Заполнение Product.form / Product.formNote и Category.formGuide.
+ *
+ * Значения — не медицинские утверждения, а общеизвестные факты про сами
+ * добавки (усвояемость формы, переносимость ЖКТ), без цифр и без «лечит».
+ * Заполняется только там, где в категории реально есть разные формы одного
+ * вещества — иначе поле остаётся пустым.
+ *
+ *   npx tsx scripts/fill-form.ts          — только таблица, базу не трогает
+ *   npx tsx scripts/fill-form.ts --apply  — записать
+ *
+ * Не перезаписывает то, что уже заполнено вручную в админке.
+ */
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+const apply = process.argv.includes("--apply");
+
+const PRODUCT_FORM: Record<string, { form: string; formNote: string }> = {
+  // Магний — три формы, разница в цене за мг реальная и заметная
+  "now-magnesium-citrate-200": {
+    form: "Цитрат",
+    formNote: "Хорошо усваивается и стоит недорого — обычный выбор для ежедневного приёма.",
+  },
+  "solaray-magnesium-glycinate-120": {
+    form: "Глицинат (бисглицинат)",
+    formNote: "Мягче действует на желудок, чем другие формы — стоит выбрать при чувствительном ЖКТ.",
+  },
+  "life-extension-magnesium-100": {
+    form: "Смесь форм (цитрат, малат, сукцинат)",
+    formNote: "Несколько форм в одной капсуле — расчёт на более равномерное усвоение в течение дня.",
+  },
+
+  // Цинк
+  "now-zinc-picolinate-50-120": {
+    form: "Пиколинат",
+    formNote: "Одна из лучше усваиваемых форм цинка.",
+  },
+  "jarrow-zinc-balance-100": {
+    form: "Монометионин + медь",
+    formNote: "С медью: при длительном приёме цинк снижает её усвоение, здесь это уже учтено.",
+  },
+
+  // Железо
+  "now-iron-18-120": {
+    form: "Глицинат",
+    formNote: "Хелатная форма — переносится мягче классических солей железа.",
+  },
+  "solaray-iron-complex-90": {
+    form: "Бисглицинат + витамин C",
+    formNote: "Витамин C в составе способствует усвоению железа.",
+  },
+
+  // Йод — источник и стабильность дозы отличаются
+  "now-kelp-150-200": {
+    form: "Из водорослей (келп)",
+    formNote: "Природный источник; содержание йода в водорослях колеблется, доза не так точна, как у концентрированных форм.",
+  },
+  "solaray-iodine-caps-200": {
+    form: "Экстракт ламинарии",
+    formNote: "Тоже водорослевый источник, дозировка выше — для тех, кому нужна повышенная норма.",
+  },
+  "life-extension-sea-iodine-60": {
+    form: "Смесь морских водорослей",
+    formNote: "Смешанный источник, самая высокая дозировка в линейке.",
+  },
+
+  // Коллаген — формат приёма, не химия
+  "now-collagen-peptides-16oz": {
+    form: "Порошок, гидролизованный",
+    formNote: "Без выраженного вкуса, растворяется в напитках — крупная порция (10 г) за приём.",
+  },
+  "solaray-collagen-complex-90": {
+    form: "Капсулы + витамин C",
+    formNote: "Удобнее порошка в дороге; витамин C участвует в собственном синтезе коллагена в организме.",
+  },
+
+  // Омега-3 — состав и концентрация
+  "now-omega-3-1000-200": {
+    form: "Рыбий жир, ЭПК + ДГК",
+    formNote: "Стандартное соотношение кислот, указано в составе.",
+  },
+  "solaray-omega-3-120": {
+    form: "Рыбий жир, повышенная концентрация",
+    formNote: "Больше ЭПК и ДГК на капсулу — можно принимать реже.",
+  },
+  "jarrow-max-omega-60": {
+    form: "Рыбий жир + масло бораго + льняное",
+    formNote: "Кроме рыбьего жира — растительные Омега-6 и Омега-9.",
+  },
+
+  // B-комплекс — активная форма фолата
+  "jarrow-methylfolate-400-60": {
+    form: "Метилфолат (активная форма B9)",
+    formNote: "Готовая к усвоению форма — в отличие от фолиевой кислоты, не требует превращения в организме.",
+  },
+
+  // Спорт
+  "jarrow-creatine-monohydrate-500g": {
+    form: "Моногидрат",
+    formNote: "Самая изученная и доступная форма креатина.",
+  },
+};
+
+const CATEGORY_GUIDE: Record<string, string> = {
+  magnesium:
+    "Магний бывает в разных формах: цитрат — доступный и хорошо изученный вариант для повседневного восполнения; глицинат мягче для желудка — стоит выбрать при чувствительном ЖКТ; смеси нескольких форм рассчитаны на более равномерное усвоение в течение дня.",
+  zinc:
+    "Пиколинат цинка — одна из лучше усваиваемых форм. Вариант с монометионином и медью подходит для длительного приёма: медь компенсирует то, что цинк со временем вытесняет её усвоение.",
+  iron:
+    "Глицинат и бисглицинат железа — хелатные формы, которые обычно переносятся мягче классических солей железа. Витамин C в составе помогает усвоению.",
+  iodine:
+    "Йод из водорослей — природный источник, но его содержание в сырье колеблется, поэтому точная доза не так стабильна, как у более концентрированных форм. Выбирайте дозировку исходя из того, сколько йода вам нужно.",
+  collagen:
+    "Порошок удобен для больших порций и разбавления в напитках без вкуса. Капсулы компактнее для приёма вне дома, но обычно дают меньшую дозу за приём.",
+  "omega-3":
+    "Продукты отличаются концентрацией ЭПК и ДГК на капсулу — чем она выше, тем меньше капсул нужно в день. Добавки с маслом бораго или льна включают ещё и растительные Омега-6 и Омега-9.",
+  "b-complex":
+    "Метилфолат — уже активная форма витамина B9, готовая к использованию организмом, в отличие от обычной фолиевой кислоты, которую сначала нужно преобразовать.",
+};
+
+async function main() {
+  const products = await prisma.product.findMany({ orderBy: { name: "asc" } });
+  const categories = await prisma.category.findMany();
+  const catBySlug = new Map(categories.map((c) => [c.slug, c]));
+
+  const productRows: { slug: string; name: string; form: string; formNote: string }[] = [];
+  const productSkipped: string[] = [];
+  for (const p of products) {
+    const draft = PRODUCT_FORM[p.slug];
+    if (!draft) continue;
+    if (p.form || p.formNote) {
+      productSkipped.push(p.name);
+      continue;
+    }
+    productRows.push({ slug: p.slug, name: p.name, ...draft });
+  }
+
+  const guideRows: { slug: string; name: string; text: string }[] = [];
+  const guideSkipped: string[] = [];
+  for (const [slug, text] of Object.entries(CATEGORY_GUIDE)) {
+    const cat = catBySlug.get(slug);
+    if (!cat) continue;
+    if (cat.formGuide) {
+      guideSkipped.push(cat.name);
+      continue;
+    }
+    guideRows.push({ slug, name: cat.name, text });
+  }
+
+  console.log(`\nФОРМА ВЕЩЕСТВА, товары (${productRows.length}):`);
+  for (const r of productRows) {
+    console.log(`  ${r.name}`);
+    console.log(`    форма: ${r.form}`);
+    console.log(`    почему: ${r.formNote}`);
+  }
+  if (productSkipped.length) {
+    console.log(`\n  Уже заполнены вручную, не трогаем: ${productSkipped.join(", ")}`);
+  }
+
+  console.log(`\n«КАКАЯ ФОРМА ДЛЯ ЧЕГО», категории (${guideRows.length}):`);
+  for (const r of guideRows) {
+    console.log(`  ${r.name}:`);
+    console.log(`    ${r.text}`);
+  }
+  if (guideSkipped.length) {
+    console.log(`\n  Уже заполнены вручную, не трогаем: ${guideSkipped.join(", ")}`);
+  }
+
+  if (!apply) {
+    console.log("\nБаза не изменена. Чтобы записать: npx tsx scripts/fill-form.ts --apply");
+    return;
+  }
+
+  for (const r of productRows) {
+    await prisma.product.update({ where: { slug: r.slug }, data: { form: r.form, formNote: r.formNote } });
+  }
+  for (const r of guideRows) {
+    await prisma.category.update({ where: { slug: r.slug }, data: { formGuide: r.text } });
+  }
+  console.log(`\nЗаписано: ${productRows.length} товаров, ${guideRows.length} категорий.`);
+}
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(() => prisma.$disconnect());

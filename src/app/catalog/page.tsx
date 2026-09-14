@@ -7,6 +7,8 @@ import CatalogSort from "./CatalogSort";
 import EmptyState from "@/components/EmptyState";
 import Link from "next/link";
 import { findGoal } from "@/lib/goals";
+import { computePricePerUnit } from "@/lib/activeValue";
+import { getBestValueSlugs } from "@/lib/bestValue";
 
 export const dynamic = "force-dynamic";
 
@@ -23,13 +25,15 @@ export default async function CatalogPage({
   );
   const query = catalogQuerySchema.parse(flat);
 
-  const [categories, allActive] = await Promise.all([
+  const [categories, allActive, bestValueSlugs] = await Promise.all([
     prisma.category.findMany({ orderBy: { sortOrder: "asc" } }),
     prisma.product.findMany({
       where: { isActive: true },
       include: { category: true },
     }),
+    getBestValueSlugs(),
   ]);
+  const activeCategory = query.category ? categories.find((c) => c.slug === query.category) : null;
   const brands = [...new Set(allActive.map((p) => p.brand))].sort();
 
   let filtered = allActive;
@@ -61,7 +65,11 @@ export default async function CatalogPage({
     );
   }
 
-  switch (query.sort) {
+  // «Дешевле за вещество» сравнивает мг с мг только внутри одной категории —
+  // без выбранной категории откатываемся к обычной сортировке по дате
+  const sort = query.sort === "value_asc" && !query.category ? undefined : query.sort;
+
+  switch (sort) {
     case "price_asc":
       filtered = [...filtered].sort((a, b) => a.price - b.price);
       break;
@@ -71,6 +79,20 @@ export default async function CatalogPage({
     case "name_asc":
       filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name, "ru"));
       break;
+    case "value_asc": {
+      // Товары без действующего вещества (BCAA, протеин) не выпадают
+      // из выдачи — уходят в конец, отсортированные как обычно
+      const withValue = filtered
+        .map((p) => ({ p, v: computePricePerUnit(p) }))
+        .filter((x): x is { p: (typeof filtered)[number]; v: NonNullable<ReturnType<typeof computePricePerUnit>> } => x.v !== null)
+        .sort((a, b) => a.v.pricePerBasis - b.v.pricePerBasis)
+        .map((x) => x.p);
+      const withoutValue = filtered
+        .filter((p) => !computePricePerUnit(p))
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      filtered = [...withValue, ...withoutValue];
+      break;
+    }
     default:
       filtered = [...filtered].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
@@ -96,6 +118,12 @@ export default async function CatalogPage({
         </div>
       ) : (
         <div className="mb-6" />
+      )}
+
+      {activeCategory?.formGuide && (
+        <div className="border-l-2 border-border-strong pl-4 mb-6 max-w-2xl text-[15px] text-text-dim leading-relaxed">
+          {activeCategory.formGuide}
+        </div>
       )}
 
       <div className="flex flex-col md:flex-row gap-8">
@@ -124,7 +152,7 @@ export default async function CatalogPage({
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               {pageItems.map((p) => (
-                <ProductCard key={p.id} product={p} />
+                <ProductCard key={p.id} product={p} bestValue={bestValueSlugs.has(p.slug)} />
               ))}
             </div>
           )}

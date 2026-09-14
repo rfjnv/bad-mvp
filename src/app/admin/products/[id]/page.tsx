@@ -49,6 +49,8 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           unitsPerPack: product.unitsPerPack,
           unitType: product.unitType ?? "",
           dailyDose: product.dailyDose,
+          form: product.form ?? "",
+          formNote: product.formNote ?? "",
           isActive: product.isActive,
         }}
       />

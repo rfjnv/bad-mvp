@@ -5,8 +5,10 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { formatSum } from "@/lib/format";
 import { t } from "@/lib/i18n";
-import { computePricePerUnit, formatPricePerUnit } from "@/lib/activeValue";
+import { computePricePerUnit, formatPricePerUnit, formatPricePerUnitShort } from "@/lib/activeValue";
 import { computeDuration, formatDuration } from "@/lib/duration";
+import { getBestValueSlugs } from "@/lib/bestValue";
+import { formatNumber } from "@/lib/format";
 import ProductAddToCart from "@/components/ProductAddToCart";
 import ProductCard from "@/components/ProductCard";
 import AddToTrackerButton from "@/components/AddToTrackerButton";
@@ -63,6 +65,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const discountPct = hasDiscount ? Math.round((1 - product.price / product.oldPrice!) * 100) : 0;
   const perUnit = computePricePerUnit(product);
   const duration = computeDuration(product);
+  const bestValueSlugs = await getBestValueSlugs();
+
+  // Честное сравнение по цене за вещество — до 4 товаров категории, включая
+  // текущий. Показываем, только если есть хоть один товар для сравнения:
+  // одна цифра без соседних ничего не доказывает.
+  const compareRows = [product, ...similar]
+    .slice(0, 4)
+    .map((p) => ({ product: p, value: computePricePerUnit(p), duration: computeDuration(p) }));
+  const showComparison = compareRows.filter((r) => r.value).length >= 2;
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 pb-28 sm:pb-12 flex flex-col gap-8">
@@ -118,6 +129,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </div>
             {perUnit && (
               <div className="text-sm text-text-dim mt-1">{formatPricePerUnit(perUnit)}</div>
+            )}
+            {/* Форма вещества объясняет разницу в цене за мг между товарами —
+                без этого текста дорогая форма читается просто как «дорого» */}
+            {product.form && (
+              <div className="mt-1.5 inline-flex items-baseline gap-1.5 flex-wrap">
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-bg-panel">{product.form}</span>
+                {product.formNote && <span className="text-xs text-text-dim">{product.formNote}</span>}
+              </div>
             )}
             {/* Цена за день приёма — продолжение той же мысли, что и цена за мг:
                 видно, за что платишь, и в единицах, которые понятны без калькулятора */}
@@ -190,6 +209,64 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           />
         </div>
       </div>
+
+      {showComparison && (
+        <section>
+          <h2 className="text-xl font-semibold tracking-tight mb-1">Сравнение по цене за вещество</h2>
+          <p className="text-sm text-text-dim mb-4">
+            Честно — если наш же другой товар выгоднее, это будет видно здесь.
+          </p>
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+            <table className="w-full text-sm min-w-[560px]">
+              <thead>
+                <tr className="text-left text-xs uppercase tracking-wide text-text-dim border-b border-border">
+                  <th className="py-2 pr-3 font-semibold">Товар</th>
+                  <th className="py-2 px-3 font-semibold">Форма</th>
+                  <th className="py-2 px-3 font-semibold text-right">Цена</th>
+                  <th className="py-2 px-3 font-semibold text-right">Цена за вещество</th>
+                  <th className="py-2 pl-3 font-semibold text-right">Хватит</th>
+                </tr>
+              </thead>
+              <tbody>
+                {compareRows.map((row) => {
+                  const isCurrent = row.product.id === product.id;
+                  return (
+                    <tr
+                      key={row.product.id}
+                      className={`border-b border-border last:border-b-0 ${isCurrent ? "bg-bg-panel" : ""}`}
+                    >
+                      <td className="py-2.5 pr-3 max-w-[220px]">
+                        {isCurrent ? (
+                          <span className="font-semibold">{row.product.name}</span>
+                        ) : (
+                          <Link href={`/product/${row.product.slug}`} className="link-action">
+                            {row.product.name}
+                          </Link>
+                        )}
+                        {bestValueSlugs.has(row.product.slug) && (
+                          <span className="block text-[11px] font-semibold text-green mt-0.5">
+                            Лучшая цена в категории
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-3 text-text-dim whitespace-nowrap">{row.product.form ?? "—"}</td>
+                      <td className="py-2.5 px-3 text-right tabular-nums whitespace-nowrap">
+                        {formatSum(row.product.price)}
+                      </td>
+                      <td className="py-2.5 px-3 text-right tabular-nums whitespace-nowrap">
+                        {row.value ? formatPricePerUnitShort(row.value) : "—"}
+                      </td>
+                      <td className="py-2.5 pl-3 text-right tabular-nums whitespace-nowrap text-text-dim">
+                        {row.duration ? `${formatNumber(row.duration.days)} дн.` : "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       {similar.length > 0 && (
         <section>

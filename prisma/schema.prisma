@@ -65,6 +65,9 @@ model Category {
   slug      String    @unique
   name      String
   sortOrder Int       @default(0)
+  /// «Какая форма для чего» — короткий текст под фильтром категории.
+  /// Редактируется в админке, не зашит в код.
+  formGuide String?
   products  Product[]
 }
 
@@ -101,6 +104,11 @@ model Product {
   /// Единиц в день по инструкции. durationDays = unitsPerPack / dailyDose
   /// считается в src/lib/duration.ts — одно место вместо хранимой копии.
   dailyDose               Float?
+  /// Форма действующего вещества (цитрат, глицинат, пиколинат…) — голая цена
+  /// за мг убивает продажу более дорогой формы без объяснения, почему она дороже.
+  form                    String?
+  /// Одна строка: почему эта форма дороже/дешевле, мягче/жёстче и т.п.
+  formNote                String?
   isActive                Boolean       @default(true)
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
