@@ -13,7 +13,12 @@ export interface TelegramConfig {
 
 export function getTelegramConfig(): TelegramConfig {
   const botToken = process.env.TELEGRAM_BOT_TOKEN || "";
-  const botUsername = process.env.TELEGRAM_BOT_USERNAME || "";
+  // Принимаем и «bot», и «@bot», и «https://t.me/bot» — люди вставляют по-разному
+  const botUsername = (process.env.TELEGRAM_BOT_USERNAME || "")
+    .trim()
+    .replace(/^https?:\/\/(t\.me|telegram\.me)\//i, "")
+    .replace(/^@/, "")
+    .replace(/[/?].*$/, "");
   return {
     sandbox: !botToken,
     canLink: Boolean(botToken && botUsername),
