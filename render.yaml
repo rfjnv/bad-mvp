@@ -10,6 +10,9 @@ services:
       # в блюпринт её не кладём — это пароль к базе
       - key: DATABASE_URL
         sync: false
+      # Прямое подключение без пулера — только для prisma migrate deploy
+      - key: DIRECT_URL
+        sync: false
       - key: SESSION_SECRET
         generateValue: true
       - key: NODE_ENV
