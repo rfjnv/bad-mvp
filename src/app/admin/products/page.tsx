@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatSum } from "@/lib/format";
 import { t } from "@/lib/i18n";
+import { computeDuration, type UnitType } from "@/lib/duration";
 
 interface Product {
   id: string;
@@ -13,6 +14,9 @@ interface Product {
   stock: number;
   isActive: boolean;
   category: { name: string };
+  unitsPerPack: number | null;
+  dailyDose: number | null;
+  unitType: UnitType | null;
 }
 
 export default function AdminProductsPage() {
@@ -74,6 +78,7 @@ export default function AdminProductsPage() {
                 <th className="py-2 pr-3">Цена</th>
                 <th className="py-2 pr-3">Остаток</th>
                 <th className="py-2 pr-3">Статус</th>
+                <th className="py-2 pr-3">Длительность</th>
                 <th className="py-2 pr-3"></th>
               </tr>
             </thead>
@@ -98,6 +103,23 @@ export default function AdminProductsPage() {
                     >
                       {p.isActive ? "Активен" : "Выключен"}
                     </button>
+                  </td>
+                  <td className="py-2 pr-3">
+                    {computeDuration({
+                      unitsPerPack: p.unitsPerPack,
+                      dailyDose: p.dailyDose,
+                      unitType: p.unitType,
+                      price: p.price,
+                    }) ? (
+                      <span className="text-text-dim">✓</span>
+                    ) : (
+                      <span
+                        className="px-2 py-1 rounded text-xs font-medium bg-red-bg text-red"
+                        title="Не попадёт в напоминания «банка заканчивается»"
+                      >
+                        ⚠ не задана
+                      </span>
+                    )}
                   </td>
                   <td className="py-2 pr-3">
                     <Link href={`/admin/products/${p.id}`} className="text-accent">

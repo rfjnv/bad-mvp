@@ -399,8 +399,9 @@ export default function ProductForm({
               {formatDuration(d)} · <span className="font-medium">≈ {d.pricePerDay.toLocaleString("ru-RU")} сум/день</span>
             </p>
           ) : (
-            <p className="text-xs text-text-dim mt-2">
-              Порошки и дозы «1–2 капсулы» заполняются здесь вручную — автоматически не распознаются.
+            <p className="text-xs text-red mt-2">
+              ⚠ Длительность не считается — товар не попадёт в напоминания «банка заканчивается».
+              Порошки и дозы «1–2 капсулы» не распознаются автоматически, заполните поля выше вручную.
             </p>
           );
         })()}
