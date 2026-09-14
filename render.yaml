@@ -6,8 +6,10 @@ services:
     buildCommand: npm install --include=dev && npx prisma generate && npx prisma migrate deploy && npx prisma db seed && npm run build
     startCommand: npm run start
     envVars:
+      # Строка подключения к Neon задаётся в панели Render (Environment),
+      # в блюпринт её не кладём — это пароль к базе
       - key: DATABASE_URL
-        value: file:./dev.db
+        sync: false
       - key: SESSION_SECRET
         generateValue: true
       - key: NODE_ENV

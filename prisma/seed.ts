@@ -715,9 +715,7 @@ async function main() {
   console.log("Создаём баннеры...");
   for (const b of banners) {
     const exists = await prisma.banner.findFirst({ where: { title: b.title } });
-    if (exists) {
-      await prisma.banner.update({ where: { id: exists.id }, data: b });
-    } else {
+    if (!exists) {
       await prisma.banner.create({ data: b });
     }
   }
@@ -728,7 +726,7 @@ async function main() {
     const created = await prisma.category.upsert({
       where: { slug: c.slug },
       create: c,
-      update: { name: c.name, sortOrder: c.sortOrder },
+      update: {},
     });
     categoryMap.set(c.slug, created.id);
   }
@@ -763,7 +761,8 @@ async function main() {
     const created = await prisma.product.upsert({
       where: { slug: p.slug },
       create: { slug: p.slug, ...data },
-      update: data,
+      // Существующий товар не перезаписываем: цены, остатки и фото правят в админке
+      update: {},
     });
     productIdBySlug.set(p.slug, created.id);
   }
@@ -772,20 +771,8 @@ async function main() {
   for (const b of bundles) {
     const productIds = b.productSlugs.map((slug) => productIdBySlug.get(slug)!);
     const existing = await prisma.bundle.findUnique({ where: { slug: b.slug } });
-    if (existing) {
-      await prisma.bundleItem.deleteMany({ where: { bundleId: existing.id } });
-      await prisma.bundle.update({
-        where: { id: existing.id },
-        data: {
-          name: b.name,
-          description: b.description,
-          discountPct: b.discountPct,
-          imageUrl: b.imageUrl,
-          sortOrder: b.sortOrder,
-          items: { create: productIds.map((productId) => ({ productId })) },
-        },
-      });
-    } else {
+    // Существующий набор не трогаем — состав и скидку правят в админке
+    if (!existing) {
       await prisma.bundle.create({
         data: {
           slug: b.slug,
@@ -800,6 +787,12 @@ async function main() {
     }
   }
 
+  // Демо-заказы нужны только пустой базе: на постоянной они бы плодились
+  // при каждом деплое, а живые заказы — это уже данные магазина.
+  const existingOrders = await prisma.order.count();
+  if (existingOrders > 0) {
+    console.log(`Заказы уже есть () — демо-заказы пропускаем.`);
+  } else {
   console.log("Создаём тестовые заказы...");
   let counter = await prisma.counter.upsert({
     where: { id: "order" },
@@ -839,6 +832,8 @@ async function main() {
         items: { create: items },
       },
     });
+  }
+
   }
 
   console.log("Создаём администратора...");
