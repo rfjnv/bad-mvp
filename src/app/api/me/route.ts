@@ -13,6 +13,7 @@ export async function GET() {
       remindersEnabled: user.remindersEnabled,
       remindDaysBefore: user.remindDaysBefore,
       remindHour: user.remindHour,
+      reminderChannelConnected: user.reminderChannelConnectedAt !== null,
     },
   });
 }

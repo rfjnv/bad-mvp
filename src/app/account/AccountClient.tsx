@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import TelegramLogin from "@/components/TelegramLogin";
-import { useUser } from "@/lib/useUser";
+import { useUser, USER_CHANGED_EVENT } from "@/lib/useUser";
 import { formatSum } from "@/lib/format";
 import { getRoutine, getAllHistory } from "@/lib/tracker";
 import { CATEGORY_ORDER_STATUS_LABELS as ORDER_STATUS_LABELS, PAYMENT_STATUS_LABELS } from "@/lib/i18n";
@@ -49,8 +49,7 @@ export default function AccountClient({ botUsername }: { botUsername: string | n
         </header>
         <TelegramLogin botUsername={botUsername} />
         <p className="text-[13px] text-text-dim border-t border-border pt-4 max-w-xl">
-          Telegram передаёт нам только имя, username и фото профиля. Номер телефона — нет.
-          Данные о приёме видите только вы.
+          Telegram передаёт нам только имя, username и фото профиля. Данные о приёме видите только вы.
         </p>
       </div>
     );
@@ -80,6 +79,7 @@ export default function AccountClient({ botUsername }: { botUsername: string | n
       <ImportFromBrowser />
       <RoutineSection />
       <OrdersSection />
+      <ReminderChannel connected={user.reminderChannelConnected} />
       <ReminderSettings
         initial={{
           remindersEnabled: user.remindersEnabled,
@@ -87,6 +87,124 @@ export default function AccountClient({ botUsername }: { botUsername: string | n
           remindHour: user.remindHour,
         }}
       />
+    </div>
+  );
+}
+
+const POLL_INTERVAL_MS = 3000;
+const POLL_TIMEOUT_MS = 2 * 60 * 1000;
+
+/**
+ * Вход через Login Widget не даёт боту права писать пользователю — это
+ * отдельное разрешение, которое Telegram выдаёт только через /start у
+ * бота. Без этого блока пользователь думает, что напоминания уже
+ * работают, хотя бот молча получает 403 на каждую отправку.
+ */
+function ReminderChannel({ connected: initialConnected }: { connected: boolean }) {
+  const [status, setStatus] = useState<"connected" | "idle" | "waiting" | "timeout" | "error">(
+    initialConnected ? "connected" : "idle"
+  );
+  const [link, setLink] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (status !== "waiting") return;
+    let cancelled = false;
+    const startedAt = Date.now();
+
+    async function poll() {
+      if (cancelled || document.hidden) return;
+      try {
+        const res = await fetch("/api/me");
+        const data = await res.json();
+        if (cancelled) return;
+        if (data.user?.reminderChannelConnected) {
+          setStatus("connected");
+          window.dispatchEvent(new Event(USER_CHANGED_EVENT));
+          return;
+        }
+      } catch {
+        // сеть моргнула — не считаем таймаутом, попробуем ещё раз
+      }
+      if (Date.now() - startedAt >= POLL_TIMEOUT_MS) {
+        if (!cancelled) setStatus("timeout");
+        return;
+      }
+      timer = setTimeout(poll, POLL_INTERVAL_MS);
+    }
+
+    let timer = setTimeout(poll, POLL_INTERVAL_MS);
+    const onVisibility = () => {
+      if (document.hidden) {
+        clearTimeout(timer);
+      } else if (status === "waiting") {
+        timer = setTimeout(poll, POLL_INTERVAL_MS);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [status]);
+
+  async function connect() {
+    setStatus("waiting");
+    setLink(null);
+    try {
+      const res = await fetch("/api/me/telegram-link", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.link) {
+        setStatus("error");
+        return;
+      }
+      setLink(data.link);
+      window.open(data.link, "_blank", "noopener,noreferrer");
+    } catch {
+      setStatus("error");
+    }
+  }
+
+  if (status === "connected") {
+    return (
+      <div className="border border-border-strong rounded-2xl p-4 flex items-center justify-between gap-3">
+        <span className="text-sm">
+          <span className="text-green font-medium">Напоминания подключены.</span> Бот напишет сюда, когда банка заканчивается.
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border border-border-strong rounded-2xl p-4 flex flex-col gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="text-sm">
+          Напоминания не подключены — вход через Telegram не даёт боту права писать вам,
+          это отдельный шаг.
+        </span>
+        {status !== "waiting" && (
+          <button onClick={connect} className="px-4 min-h-[40px] rounded-lg btn btn-primary text-sm shrink-0">
+            {status === "timeout" || status === "error" ? "Попробовать снова" : "Подключить напоминания"}
+          </button>
+        )}
+      </div>
+      {status === "waiting" && (
+        <p className="text-sm text-text-dim">
+          Открыли бота в новой вкладке — нажмите там Start.{" "}
+          {link && (
+            <a href={link} target="_blank" rel="noopener noreferrer" className="link-action">
+              Открыть ещё раз
+            </a>
+          )}
+        </p>
+      )}
+      {status === "timeout" && (
+        <p className="text-sm text-text-dim">Не дождались подтверждения от бота. Попробуйте ещё раз.</p>
+      )}
+      {status === "error" && (
+        <p className="text-sm text-red">Не получилось получить ссылку. Попробуйте ещё раз.</p>
+      )}
     </div>
   );
 }

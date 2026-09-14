@@ -11,8 +11,10 @@ jobs:
   run:
     runs-on: ubuntu-latest
     steps:
+      - name: Разбудить Render (бесплатный план засыпает, первый запрос может отвалиться по таймауту)
+        run: curl -sS --max-time 60 "https://bad-mvp.onrender.com/" -o /dev/null || true
       - name: Запустить напоминания
         run: |
-          curl -sS --fail-with-body --max-time 120 \
+          curl -sS --fail-with-body --max-time 120 --retry 3 --retry-delay 10 --retry-all-errors \
             -X POST "https://bad-mvp.onrender.com/api/cron/reminders" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

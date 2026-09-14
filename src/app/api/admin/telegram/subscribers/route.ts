@@ -15,6 +15,7 @@ export async function GET() {
       firstName: true,
       username: true,
       createdAt: true,
+      reminderChannelConnectedAt: true,
       _count: { select: { routine: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -28,6 +29,7 @@ export async function GET() {
       username: u.username,
       routineCount: u._count.routine,
       createdAt: u.createdAt,
+      channelConnected: u.reminderChannelConnectedAt !== null,
     }))
   );
 }

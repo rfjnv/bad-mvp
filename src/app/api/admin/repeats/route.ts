@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
             customerName: true,
             customerPhone: true,
             deliveredAt: true,
-            user: { select: { firstName: true, username: true, remindersEnabled: true } },
+            user: { select: { firstName: true, username: true, remindersEnabled: true, reminderChannelConnectedAt: true } },
           },
         },
       },
@@ -50,7 +50,13 @@ export async function GET(req: NextRequest) {
         ? `${i.order.user.firstName}${i.order.user.username ? ` @${i.order.user.username}` : ""}`
         : i.order.customerName,
       phone: i.order.customerPhone,
-      channel: i.order.user ? (i.order.user.remindersEnabled ? "telegram" : "off") : "none",
+      channel: !i.order.user
+        ? "none"
+        : !i.order.user.remindersEnabled
+          ? "off"
+          : i.order.user.reminderChannelConnectedAt
+            ? "telegram"
+            : "not_connected",
       product: i.product.name,
       productSlug: i.product.slug,
       quantity: i.quantity,

@@ -79,9 +79,12 @@ export async function runReminders(siteUrl: string, now = new Date()): Promise<R
     const order = r.orderItem.order;
     const user = order.user;
 
-    // Канал — только Telegram вошедшего пользователя. Гостю писать некуда,
-    // но позицию не теряем: магазин увидит её в «Ожидаемых повторах».
-    if (!user || !user.remindersEnabled) {
+    // Канал — только Telegram вошедшего пользователя, который отдельно
+    // подключил напоминания (/start по deep-link). Вход через Login Widget
+    // прав писать не даёт — sendMessage на него ответит 403. Гостю и не
+    // подключившему канал писать некуда, но позицию не теряем: магазин
+    // увидит её в «Ожидаемых повторах».
+    if (!user || !user.remindersEnabled || !user.reminderChannelConnectedAt) {
       await prisma.reminder.update({ where: { id: r.id }, data: { status: "NO_CHANNEL" } });
       result.noChannel++;
       continue;
@@ -103,7 +106,14 @@ export async function runReminders(siteUrl: string, now = new Date()): Promise<R
     const send = await sendTelegramMessage(user.telegramId, text, buttons);
     if (!send.ok) {
       result.errors.push(`${order.orderNumber}: ${send.error}`);
-      continue; // остаётся PENDING — попробуем в следующий запуск
+      if (send.errorCode === 403) {
+        // Пользователь заблокировал бота или отозвал доступ — канал разорван,
+        // ретраить бессмысленно, пока не подключит заново
+        await prisma.user.update({ where: { id: user.id }, data: { reminderChannelConnectedAt: null } });
+        await prisma.reminder.update({ where: { id: r.id }, data: { status: "NO_CHANNEL" } });
+        result.noChannel++;
+      }
+      continue; // иначе остаётся PENDING — попробуем в следующий запуск
     }
 
     await prisma.reminder.update({

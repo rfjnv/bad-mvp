@@ -274,12 +274,20 @@ model User {
   firstName        String
   username         String?
   photoUrl         String?
-  phone            String?
   /// Настройки напоминаний «банка заканчивается»
   remindersEnabled Boolean       @default(true)
   remindDaysBefore Int           @default(7)
   /// Час отправки по Ташкенту, 0–23
   remindHour       Int           @default(10)
+  /// Вход через Login Widget НЕ даёт боту права писать пользователю —
+  /// для этого нужен отдельный /start по deep-link. NULL = бот не может
+  /// слать напоминания; заполняется при успешной привязке, обнуляется,
+  /// если Telegram вернул 403 (пользователь заблокировал бота).
+  reminderChannelConnectedAt DateTime?
+  /// Одноразовый токен для t.me/<bot>?start=<token> — привязывает канал
+  /// к уже существующему аккаунту, а не к браузеру
+  pendingLinkToken           String?   @unique
+  pendingLinkTokenExpiresAt  DateTime?
   createdAt        DateTime      @default(now())
   lastLoginAt      DateTime      @default(now())
   orders           Order[]

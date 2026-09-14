@@ -10,6 +10,7 @@ interface Subscriber {
   username: string | null;
   routineCount: number;
   createdAt: string;
+  channelConnected: boolean;
 }
 
 interface SendResult {
@@ -63,8 +64,9 @@ export default function AdminTelegramPage() {
           {sending ? "Отправляем..." : "Отправить напоминания сейчас"}
         </button>
         <p className="text-xs text-text-dim">
-          Уходит всем, кто вошёл через Telegram, не выключил напоминания и что-то держит в «Моём приёме».
-          Без TELEGRAM_BOT_TOKEN сообщения не уходят реально — ниже показывается, что было бы отправлено.
+          Уходит тем, кто подключил канал напоминаний (не просто вошёл), не выключил напоминания
+          и что-то держит в «Моём приёме». Без TELEGRAM_BOT_TOKEN сообщения не уходят реально —
+          ниже показывается, что было бы отправлено.
         </p>
       </div>
 
@@ -111,8 +113,12 @@ export default function AdminTelegramPage() {
                     {s.routineCount} {s.routineCount === 1 ? "товар" : "товара"} в приёме
                   </div>
                 </div>
-                <span className="shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium bg-green-bg text-green">
-                  подключён
+                <span
+                  className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium ${
+                    s.channelConnected ? "bg-green-bg text-green" : "bg-white border border-border text-text-dim"
+                  }`}
+                >
+                  {s.channelConnected ? "канал подключён" : "вошёл, канал не подключён"}
                 </span>
               </div>
             ))}

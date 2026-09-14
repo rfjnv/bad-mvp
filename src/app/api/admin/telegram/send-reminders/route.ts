@@ -10,7 +10,7 @@ import { sendTelegramMessage, buildReminderMessage } from "@/lib/telegram";
  */
 export async function POST() {
   const users = await prisma.user.findMany({
-    where: { remindersEnabled: true, routine: { some: {} } },
+    where: { remindersEnabled: true, reminderChannelConnectedAt: { not: null }, routine: { some: {} } },
     select: {
       id: true,
       telegramId: true,
@@ -22,6 +22,9 @@ export async function POST() {
   for (const u of users) {
     const message = buildReminderMessage(u.routine.map((r) => r.product.name));
     const result = await sendTelegramMessage(u.telegramId, message);
+    if (!result.ok && result.errorCode === 403) {
+      await prisma.user.update({ where: { id: u.id }, data: { reminderChannelConnectedAt: null } });
+    }
     results.push({
       userId: u.id,
       telegramId: u.telegramId,

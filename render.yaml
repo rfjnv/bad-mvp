@@ -3,7 +3,7 @@ services:
     name: bad-mvp
     runtime: node
     plan: free
-    buildCommand: npm install --include=dev && npx prisma generate && npx prisma migrate deploy && npx prisma db seed && npm run build
+    buildCommand: npm install --include=dev && npx prisma generate && npx prisma migrate deploy && npx prisma db seed && npm run build && npm run telegram:webhook
     startCommand: npm run start
     envVars:
       # Строка подключения к Neon задаётся в панели Render (Environment),
@@ -17,6 +17,9 @@ services:
       - key: CRON_SECRET
         generateValue: true
       - key: SESSION_SECRET
+        generateValue: true
+      # Проверка, что вебхук Telegram зовём именно мы, а не кто попало на угад URL
+      - key: TELEGRAM_WEBHOOK_SECRET
         generateValue: true
       - key: NODE_ENV
         value: production

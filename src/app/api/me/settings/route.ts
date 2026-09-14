@@ -7,7 +7,6 @@ const schema = z.object({
   remindersEnabled: z.boolean().optional(),
   remindDaysBefore: z.number().int().min(1).max(30).optional(),
   remindHour: z.number().int().min(0).max(23).optional(),
-  phone: z.string().trim().max(32).nullable().optional(),
 });
 
 /** Настройки напоминаний «банка заканчивается» */
@@ -21,6 +20,5 @@ export async function PATCH(req: NextRequest) {
     remindersEnabled: updated.remindersEnabled,
     remindDaysBefore: updated.remindDaysBefore,
     remindHour: updated.remindHour,
-    phone: updated.phone,
   });
 }

@@ -10,6 +10,7 @@ export interface CurrentUser {
   remindersEnabled: boolean;
   remindDaysBefore: number;
   remindHour: number;
+  reminderChannelConnected: boolean;
 }
 
 export const USER_CHANGED_EVENT = "bad-mvp-user-changed";

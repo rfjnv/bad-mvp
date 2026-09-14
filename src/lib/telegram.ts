@@ -32,6 +32,8 @@ export interface SendMessageResult {
   sandbox: boolean;
   preview: string;
   error?: string;
+  /** Код ответа Telegram (403 = бот не может писать первым / заблокирован) */
+  errorCode?: number;
 }
 
 /**
@@ -68,7 +70,13 @@ export async function sendTelegramMessage(
     });
     if (!res.ok) {
       const body = await res.text().catch(() => "");
-      return { ok: false, sandbox: false, preview: text, error: `Telegram API ${res.status}: ${body}` };
+      let errorCode: number | undefined;
+      try {
+        errorCode = JSON.parse(body)?.error_code;
+      } catch {
+        // не JSON — оставляем errorCode неопределённым
+      }
+      return { ok: false, sandbox: false, preview: text, error: `Telegram API ${res.status}: ${body}`, errorCode };
     }
     return { ok: true, sandbox: false, preview: text };
   } catch (err) {

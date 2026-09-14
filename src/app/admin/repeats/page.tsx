@@ -9,7 +9,7 @@ interface Row {
   orderNumber: string;
   customer: string;
   phone: string;
-  channel: "telegram" | "off" | "none";
+  channel: "telegram" | "off" | "none" | "not_connected";
   product: string;
   quantity: number;
   expectedFinishAt: string;
@@ -34,6 +34,7 @@ const CHANNEL: Record<Row["channel"], string> = {
   telegram: "Telegram",
   off: "напоминания выключены",
   none: "гость — без Telegram",
+  not_connected: "вошёл, канал не подключён",
 };
 
 function fmt(iso: string): string {
