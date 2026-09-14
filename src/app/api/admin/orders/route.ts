@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import type { OrderStatus } from "@prisma/client";
+import { getPaymentProvider } from "@/lib/payments";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
@@ -23,5 +24,11 @@ export async function GET(req: NextRequest) {
     include: { items: true },
     orderBy: { createdAt: "desc" },
   });
-  return NextResponse.json(orders);
+  const withMockFlag = orders.map((o) => ({
+    ...o,
+    paymentIsMock:
+      (o.paymentMethod === "PAYME" || o.paymentMethod === "CLICK") &&
+      getPaymentProvider(o.paymentMethod).sandbox,
+  }));
+  return NextResponse.json(withMockFlag);
 }

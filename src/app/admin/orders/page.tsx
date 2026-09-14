@@ -15,6 +15,7 @@ interface Order {
   totalAmount: number;
   createdAt: string;
   items: { id: string }[];
+  paymentIsMock: boolean;
 }
 
 const STATUSES = ["", "NEW", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"];
@@ -86,7 +87,14 @@ export default function AdminOrdersPage() {
                     <div className="text-xs text-text-dim">{o.customerPhone}</div>
                   </td>
                   <td className="py-2 pr-3">{formatSum(o.totalAmount)}</td>
-                  <td className="py-2 pr-3 text-text-dim">{PAYMENT_STATUS_LABELS[o.paymentStatus]}</td>
+                  <td className="py-2 pr-3 text-text-dim">
+                    {PAYMENT_STATUS_LABELS[o.paymentStatus]}
+                    {o.paymentIsMock && (
+                      <span className="ml-1.5 px-1.5 py-0.5 rounded text-[11px] font-semibold bg-red-bg text-red">
+                        макет
+                      </span>
+                    )}
+                  </td>
                   <td className="py-2 pr-3">{CATEGORY_ORDER_STATUS_LABELS[o.status]}</td>
                   <td className="py-2 pr-3 text-text-dim">
                     {new Date(o.createdAt).toLocaleDateString("ru-RU")}

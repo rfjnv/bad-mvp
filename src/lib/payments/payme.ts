@@ -20,7 +20,7 @@ export function createPaymeProvider(): PaymentProvider {
     async createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult> {
       if (sandbox) {
         return {
-          paymentUrl: `/payment/sandbox/${input.orderId}?provider=PAYME`,
+          paymentUrl: `/payment/process/${input.orderId}?provider=PAYME`,
           providerPaymentId: `sandbox_payme_${input.orderId}`,
           sandbox: true,
         };

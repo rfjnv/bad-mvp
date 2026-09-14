@@ -25,6 +25,7 @@ interface Order {
   totalAmount: number;
   createdAt: string;
   items: OrderItem[];
+  paymentIsMock: boolean;
 }
 
 const STATUSES = ["NEW", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"];
@@ -89,6 +90,11 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
           <div className="font-medium">
             {PAYMENT_METHOD_LABELS[order.paymentMethod]} — {PAYMENT_STATUS_LABELS[order.paymentStatus]}
           </div>
+          {order.paymentIsMock && (
+            <div className="mt-1 inline-block px-2 py-0.5 rounded text-xs font-semibold bg-red-bg text-red">
+              ⚠ Макет — ключи провайдера не подключены, деньги не списаны
+            </div>
+          )}
         </div>
         <div>
           <div className="text-text-dim">Дата</div>

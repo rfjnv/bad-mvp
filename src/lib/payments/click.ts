@@ -21,7 +21,7 @@ export function createClickProvider(): PaymentProvider {
     async createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult> {
       if (sandbox) {
         return {
-          paymentUrl: `/payment/sandbox/${input.orderId}?provider=CLICK`,
+          paymentUrl: `/payment/process/${input.orderId}?provider=CLICK`,
           providerPaymentId: `sandbox_click_${input.orderId}`,
           sandbox: true,
         };
