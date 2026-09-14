@@ -26,16 +26,29 @@ export async function GET() {
 }
 
 /**
- * Очищает очередь необработанных апдейтов у Telegram (drop_pending_updates).
- * Мы не используем вебхук вовсе — вход идёт через Login Widget без единого
- * сообщения боту, — поэтому очередь безопасно сбросить, чтобы диагностика
- * не показывала зависшие /start с прошлой, нерабочей схемы привязки.
+ * Без query-параметра: чистит очередь необработанных апдейтов у Telegram
+ * (drop_pending_updates) — на случай зависших /start от старой схемы.
+ *
+ * С ?testSendTo=<telegramId>: шлёт этому chat_id тестовое сообщение и
+ * возвращает сырой ответ Telegram как есть — способ фактически проверить,
+ * может ли бот писать конкретному пользователю (a не гадать по докам).
  */
-export async function POST() {
+export async function POST(req: Request) {
   const { sandbox, botToken } = getTelegramConfig();
   if (sandbox) {
     return NextResponse.json({ sandbox: true, note: "TELEGRAM_BOT_TOKEN не задан" });
   }
+
+  const testSendTo = new URL(req.url).searchParams.get("testSendTo");
+  if (testSendTo) {
+    const result = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: testSendTo, text: "Диагностика доставки сообщений (можно игнорировать)" }),
+    }).then((r) => r.json());
+    return NextResponse.json(result);
+  }
+
   const result = await fetch(
     `https://api.telegram.org/bot${botToken}/deleteWebhook?drop_pending_updates=true`
   ).then((r) => r.json());
