@@ -45,6 +45,83 @@ export async function sendTelegramMessage(chatId: string, text: string): Promise
   }
 }
 
+/**
+ * Чат магазина, куда приходят уведомления о заказах.
+ * Задаётся отдельно от бота: бот один, а чатов может быть несколько
+ * (владелец, менеджер, группа склада).
+ */
+export function getShopChatId(): string {
+  return process.env.TELEGRAM_ADMIN_CHAT_ID || "";
+}
+
+export interface OrderNotificationInput {
+  orderNumber: string;
+  orderId: string;
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
+  comment: string | null;
+  paymentMethod: string;
+  totalAmount: number;
+  items: { name: string; quantity: number; priceAtPurchase: number }[];
+  siteUrl: string;
+}
+
+const PAYMENT_LABELS: Record<string, string> = {
+  CASH: "наличные при получении",
+  PAYME: "Payme",
+  CLICK: "Click",
+};
+
+function formatSum(n: number): string {
+  return n.toLocaleString("ru-RU").replace(/ /g, " ") + " сум";
+}
+
+export function buildOrderNotification(o: OrderNotificationInput): string {
+  const lines = o.items.map(
+    (i) => `• ${i.name} × ${i.quantity} — ${formatSum(i.priceAtPurchase * i.quantity)}`
+  );
+  const parts = [
+    `🛒 Новый заказ ${o.orderNumber}`,
+    "",
+    ...lines,
+    "",
+    `Итого: ${formatSum(o.totalAmount)}`,
+    `Оплата: ${PAYMENT_LABELS[o.paymentMethod] ?? o.paymentMethod}`,
+    "",
+    `${o.customerName}, ${o.customerPhone}`,
+    o.customerAddress,
+  ];
+  if (o.comment) parts.push("", `Комментарий: ${o.comment}`);
+  parts.push("", `${o.siteUrl}/admin/orders/${o.orderId}`);
+  return parts.join("\n");
+}
+
+export function buildPaymentNotification(orderNumber: string, totalAmount: number, method: string): string {
+  return `✅ Оплачен заказ ${orderNumber}\n${formatSum(totalAmount)} через ${PAYMENT_LABELS[method] ?? method}`;
+}
+
+/**
+ * Уведомляет магазин. Никогда не бросает исключение и не влияет на ответ
+ * клиенту: заказ уже в базе, а сбой Telegram — не повод показать покупателю
+ * ошибку. В песочнице печатает сообщение в лог сервера, чтобы его было
+ * видно и в разработке, и в логах Render до подключения настоящего бота.
+ */
+export async function notifyShop(text: string): Promise<void> {
+  const chatId = getShopChatId();
+  const { sandbox } = getTelegramConfig();
+
+  if (sandbox || !chatId) {
+    console.log("[telegram → магазин, песочница]\n" + text);
+    return;
+  }
+
+  const result = await sendTelegramMessage(chatId, text);
+  if (!result.ok) {
+    console.error("[telegram → магазин] не доставлено:", result.error);
+  }
+}
+
 export function buildReminderMessage(items: string[]): string {
   if (items.length === 0) {
     return "Напоминание: загляните в «Мой приём» на сайте и добавьте товары, которые принимаете регулярно.";

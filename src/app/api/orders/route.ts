@@ -5,6 +5,7 @@ import { normalizePhone } from "@/lib/format";
 import { nextOrderNumber } from "@/lib/orderNumber";
 import { getPaymentProvider } from "@/lib/payments";
 import { deliveryFee } from "@/lib/delivery";
+import { notifyShop, buildOrderNotification } from "@/lib/telegram";
 
 export async function POST(req: NextRequest) {
   const json = await req.json().catch(() => null);
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
       }
 
       let totalAmount = 0;
-      const resolved: { productId: string; quantity: number; unitPrice: number }[] = [];
+      const resolved: { productId: string; name: string; quantity: number; unitPrice: number }[] = [];
       for (const item of input.items) {
         const product = bySlug.get(item.slug);
         if (!product || !product.isActive) {
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
         const unitPrice = discountedIds.has(product.id)
           ? Math.round(product.price * (1 - bundleDiscountPct / 100))
           : product.price;
-        resolved.push({ productId: product.id, quantity: item.quantity, unitPrice });
+        resolved.push({ productId: product.id, name: product.name, quantity: item.quantity, unitPrice });
         totalAmount += unitPrice * item.quantity;
       }
 
@@ -106,6 +107,27 @@ export async function POST(req: NextRequest) {
         });
       }
 
+      return {
+        order,
+        items: resolved.map((r) => ({ name: r.name, quantity: r.quantity, priceAtPurchase: r.unitPrice })),
+      };
+    }).then(({ order, items }) => {
+      // Магазин узнаёт о заказе сразу, а не когда кто-то откроет админку.
+      // Не ждём ответа Telegram: покупателю нечего делать с его ошибками.
+      void notifyShop(
+        buildOrderNotification({
+          orderNumber: order.orderNumber,
+          orderId: order.id,
+          customerName: order.customerName,
+          customerPhone: order.customerPhone,
+          customerAddress: order.customerAddress,
+          comment: order.comment,
+          paymentMethod: order.paymentMethod,
+          totalAmount: order.totalAmount,
+          items,
+          siteUrl: req.nextUrl.origin,
+        })
+      );
       return order;
     });
 

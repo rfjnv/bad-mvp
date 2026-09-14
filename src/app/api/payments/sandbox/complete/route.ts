@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
+import { applyPaymentResult } from "@/lib/orderPayment";
 import { getPaymentProvider } from "@/lib/payments";
 
 const bodySchema = z.object({
@@ -21,10 +21,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Песочница отключена для этого провайдера" }, { status: 403 });
   }
 
-  const order = await prisma.order.update({
-    where: { id: parsed.data.orderId },
-    data: { paymentStatus: "PAID" },
-  });
+  const order = await applyPaymentResult(parsed.data.orderId, "PAID");
+  if (!order) {
+    return NextResponse.json({ error: "Заказ не найден" }, { status: 404 });
+  }
 
   return NextResponse.json({ ok: true, orderId: order.id });
 }

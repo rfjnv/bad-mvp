@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { applyPaymentResult } from "@/lib/orderPayment";
 import { getPaymentProvider } from "@/lib/payments";
 
 export async function POST(req: NextRequest) {
@@ -23,10 +23,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: -5, error_note: "Order not found" }, { status: 404 });
   }
 
-  await prisma.order.update({
-    where: { id: result.orderId },
-    data: { paymentStatus: result.status },
-  });
+  await applyPaymentResult(result.orderId, result.status);
 
   return NextResponse.json({ error: 0, error_note: "Success" });
 }

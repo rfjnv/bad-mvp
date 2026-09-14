@@ -49,6 +49,9 @@ export default function AdminTelegramPage() {
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-semibold tracking-tight">{t.admin.telegram}</h1>
 
+      <ShopChannel />
+
+      <h2 className="text-lg font-semibold tracking-tight">Напоминания покупателям</h2>
       <div className="flex items-center gap-3">
         <button
           onClick={sendReminders}
@@ -114,6 +117,85 @@ export default function AdminTelegramPage() {
             })}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+interface ShopStatus {
+  sandbox: boolean;
+  botUsername: string | null;
+  chatConfigured: boolean;
+}
+
+/**
+ * Канал уведомлений магазина о заказах. Без него заказ ложится в базу
+ * и никто об этом не узнаёт, пока не откроет админку.
+ */
+function ShopChannel() {
+  const [status, setStatus] = useState<ShopStatus | null>(null);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/telegram/shop")
+      .then((r) => r.json())
+      .then(setStatus);
+  }, []);
+
+  async function sendTest() {
+    setTesting(true);
+    setTestResult(null);
+    const res = await fetch("/api/admin/telegram/shop", { method: "POST" });
+    const data = await res.json();
+    setTestResult(
+      data.sandbox
+        ? "Песочница: сообщение напечатано в лог сервера, а не отправлено."
+        : data.ok
+          ? "Отправлено — проверьте чат."
+          : `Ошибка: ${data.error}`
+    );
+    setTesting(false);
+  }
+
+  const live = status && !status.sandbox && status.chatConfigured;
+
+  return (
+    <div className="bg-bg-panel rounded-2xl p-5 flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <div className="font-semibold">Уведомления о заказах</div>
+          <div className="text-sm text-text-dim mt-0.5">
+            Каждый новый заказ и каждая оплата приходят сообщением в чат магазина.
+          </div>
+        </div>
+        <span
+          className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg ${
+            live ? "bg-green-bg text-green" : "bg-white border border-border text-text-dim"
+          }`}
+        >
+          {status === null ? "…" : live ? "Подключено" : "Песочница"}
+        </span>
+      </div>
+
+      {status && !live && (
+        <p className="text-sm text-text-dim border-l-2 border-border-strong pl-3">
+          {status.sandbox
+            ? "Не задан TELEGRAM_BOT_TOKEN — сообщения печатаются в лог сервера."
+            : "Бот подключён, но не задан TELEGRAM_ADMIN_CHAT_ID — некуда отправлять."}{" "}
+          Свой chat_id можно узнать, написав боту @userinfobot.
+        </p>
+      )}
+
+      <div className="flex items-center gap-3">
+        <button
+          onClick={sendTest}
+          disabled={testing}
+          className="px-4 py-2 rounded-lg btn btn-secondary text-sm font-semibold disabled:opacity-60"
+        >
+          {testing ? "Отправляем…" : "Отправить тестовое сообщение"}
+        </button>
+        {testResult && <span className="text-sm text-text-dim">{testResult}</span>}
       </div>
     </div>
   );
