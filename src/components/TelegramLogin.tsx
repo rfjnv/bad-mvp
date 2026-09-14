@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { USER_CHANGED_EVENT } from "@/lib/useUser";
-import { getDeviceId } from "@/lib/device";
 
 declare global {
   interface Window {
@@ -47,7 +46,7 @@ export default function TelegramLogin({
         const res = await fetch("/api/auth/telegram", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...data, deviceId: getDeviceId() }),
+          body: JSON.stringify(data),
         });
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));

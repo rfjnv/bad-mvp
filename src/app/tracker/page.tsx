@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useTracker } from "@/lib/useTracker";
 import { t } from "@/lib/i18n";
 import EmptyState from "@/components/EmptyState";
-import TelegramConnect from "@/components/TelegramConnect";
 
 export default function TrackerPage() {
   const { routine, checks, toggle, remove, streak, loaded, server } = useTracker();
@@ -50,14 +49,15 @@ export default function TrackerPage() {
 
       {server ? null : (
         <div className="border border-border-strong rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
-          <span className="text-sm">Список хранится в этом браузере. Войдите через Telegram — и он будет на всех устройствах.</span>
+          <span className="text-sm">
+            Список хранится в этом браузере. Войдите через Telegram — он будет на всех устройствах,
+            и бот напомнит, когда банка заканчивается.
+          </span>
           <Link href="/account?login=1" className="px-4 min-h-[40px] rounded-lg btn btn-primary text-sm shrink-0">
             Войти
           </Link>
         </div>
       )}
-
-      {server ? null : <TelegramConnect routineNames={routine.map((r) => r.name)} />}
 
       <div className="flex flex-col gap-3">
         {routine.map((item) => {

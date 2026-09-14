@@ -24,3 +24,20 @@ export async function GET() {
     getWebhookInfo: webhook,
   });
 }
+
+/**
+ * Очищает очередь необработанных апдейтов у Telegram (drop_pending_updates).
+ * Мы не используем вебхук вовсе — вход идёт через Login Widget без единого
+ * сообщения боту, — поэтому очередь безопасно сбросить, чтобы диагностика
+ * не показывала зависшие /start с прошлой, нерабочей схемы привязки.
+ */
+export async function POST() {
+  const { sandbox, botToken } = getTelegramConfig();
+  if (sandbox) {
+    return NextResponse.json({ sandbox: true, note: "TELEGRAM_BOT_TOKEN не задан" });
+  }
+  const result = await fetch(
+    `https://api.telegram.org/bot${botToken}/deleteWebhook?drop_pending_updates=true`
+  ).then((r) => r.json());
+  return NextResponse.json(result);
+}

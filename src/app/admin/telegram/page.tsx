@@ -5,14 +5,16 @@ import { t } from "@/lib/i18n";
 
 interface Subscriber {
   id: string;
-  deviceId: string;
-  chatId: string | null;
-  routineSnapshot: string | null;
+  telegramId: string;
+  firstName: string;
+  username: string | null;
+  routineCount: number;
   createdAt: string;
 }
 
 interface SendResult {
-  deviceId: string;
+  userId: string;
+  telegramId: string;
   ok: boolean;
   sandbox: boolean;
   preview: string;
@@ -61,6 +63,7 @@ export default function AdminTelegramPage() {
           {sending ? "Отправляем..." : "Отправить напоминания сейчас"}
         </button>
         <p className="text-xs text-text-dim">
+          Уходит всем, кто вошёл через Telegram, не выключил напоминания и что-то держит в «Моём приёме».
           Без TELEGRAM_BOT_TOKEN сообщения не уходят реально — ниже показывается, что было бы отправлено.
         </p>
       </div>
@@ -69,12 +72,12 @@ export default function AdminTelegramPage() {
         <div className="flex flex-col gap-2">
           <div className="text-sm font-semibold">Результат отправки ({results.length})</div>
           {results.length === 0 ? (
-            <p className="text-sm text-text-dim">Нет подключённых подписчиков.</p>
+            <p className="text-sm text-text-dim">Некому отправлять — см. список ниже.</p>
           ) : (
             results.map((r) => (
-              <div key={r.deviceId} className="bg-bg-panel border border-border rounded-xl p-3 text-sm">
+              <div key={r.userId} className="bg-bg-panel border border-border rounded-xl p-3 text-sm">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-mono text-xs text-text-dim">{r.deviceId.slice(0, 12)}...</span>
+                  <span className="font-mono text-xs text-text-dim">{r.telegramId}</span>
                   <span className={r.sandbox ? "text-text-dim" : r.ok ? "text-green" : "text-red"}>
                     {r.sandbox ? "песочница" : r.ok ? "отправлено" : "ошибка"}
                   </span>
@@ -88,33 +91,31 @@ export default function AdminTelegramPage() {
       )}
 
       <div>
-        <div className="text-sm font-semibold mb-2">Подписчики ({subscribers.length})</div>
+        <div className="text-sm font-semibold mb-2">Получатели ({subscribers.length})</div>
         {loading ? (
           <p className="text-sm text-text-dim">{t.common.loading}</p>
         ) : subscribers.length === 0 ? (
-          <p className="text-sm text-text-dim">Пока никто не подключил Telegram-напоминания.</p>
+          <p className="text-sm text-text-dim">
+            Пока никто не вошёл через Telegram с непустым списком приёма.
+          </p>
         ) : (
           <div className="flex flex-col gap-2">
-            {subscribers.map((s) => {
-              const items: string[] = s.routineSnapshot ? JSON.parse(s.routineSnapshot) : [];
-              return (
-                <div key={s.id} className="bg-bg-panel border border-border rounded-xl p-3 text-sm flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="font-mono text-xs text-text-dim">{s.deviceId.slice(0, 16)}...</div>
-                    <div className="text-text-dim truncate">
-                      {items.length > 0 ? items.join(", ") : "Список приёма пуст"}
-                    </div>
+            {subscribers.map((s) => (
+              <div key={s.id} className="bg-bg-panel border border-border rounded-xl p-3 text-sm flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-medium truncate">
+                    {s.firstName}
+                    {s.username && <span className="text-text-dim"> · @{s.username}</span>}
                   </div>
-                  <span
-                    className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium ${
-                      s.chatId ? "bg-green-bg text-green" : "bg-bg text-text-dim"
-                    }`}
-                  >
-                    {s.chatId ? "подключён" : "не подключён"}
-                  </span>
+                  <div className="text-text-dim text-xs">
+                    {s.routineCount} {s.routineCount === 1 ? "товар" : "товара"} в приёме
+                  </div>
                 </div>
-              );
-            })}
+                <span className="shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium bg-green-bg text-green">
+                  подключён
+                </span>
+              </div>
+            ))}
           </div>
         )}
       </div>

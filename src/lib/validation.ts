@@ -1,15 +1,6 @@
 import { z } from "zod";
 import { normalizePhone } from "./format";
 
-export const telegramLinkSchema = z.object({
-  deviceId: z.string().trim().min(8).max(100),
-});
-
-export const telegramSyncRoutineSchema = z.object({
-  deviceId: z.string().trim().min(8).max(100),
-  items: z.array(z.string().trim().min(1).max(200)).max(50),
-});
-
 export const checkoutItemSchema = z.object({
   // slug, а не cuid: id пересоздаются при редеплое эфемерной базы,
   // а корзина у покупателя живёт в localStorage неделями

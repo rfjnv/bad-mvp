@@ -31,14 +31,6 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  // Если этот браузер подключал напоминания как гость — привязываем к аккаунту
-  const deviceId = typeof json.deviceId === "string" ? json.deviceId : null;
-  if (deviceId) {
-    await prisma.telegramSubscriber
-      .updateMany({ where: { deviceId, userId: null }, data: { userId: user.id, chatId: telegramId } })
-      .catch(() => {});
-  }
-
   const res = NextResponse.json({ ok: true, user: { id: user.id, firstName: user.firstName } });
   res.cookies.set(USER_COOKIE, await createUserToken(user.id), {
     httpOnly: true,

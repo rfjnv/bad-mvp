@@ -213,17 +213,6 @@ model BundleItem {
   @@index([productId])
 }
 
-model TelegramSubscriber {
-  id              String   @id @default(cuid())
-  deviceId        String   @unique
-  chatId          String?
-  /// Привязка к аккаунту после входа через Telegram
-  userId          String?
-  routineSnapshot String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
 model Counter {
   id    String @id
   value Int    @default(0)
