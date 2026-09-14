@@ -10,6 +10,7 @@ import ProductAddToCart from "@/components/ProductAddToCart";
 import ProductCard from "@/components/ProductCard";
 import AddToTrackerButton from "@/components/AddToTrackerButton";
 import DocumentsSection from "@/components/DocumentsSection";
+import TrackProductView from "@/components/TrackProductView";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +64,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 pb-28 sm:pb-12 flex flex-col gap-8">
+      <TrackProductView slug={product.slug} />
       <nav className="flex items-center gap-1.5 text-sm text-text-dim flex-wrap">
         <Link href="/" className="hover:text-text transition-colors">
           {t.nav.home}

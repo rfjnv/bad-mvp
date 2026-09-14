@@ -111,7 +111,22 @@ export async function POST(req: NextRequest) {
         order,
         items: resolved.map((r) => ({ name: r.name, quantity: r.quantity, priceAtPurchase: r.unitPrice })),
       };
-    }).then(({ order, items }) => {
+    }).then(async ({ order, items }) => {
+      if (input.sessionId) {
+        await prisma.event
+          .create({
+            data: {
+              type: "order_created",
+              sessionId: input.sessionId,
+              path: "/checkout",
+              key: order.orderNumber,
+              meta: JSON.stringify({ total: order.totalAmount, items: items.length, payment: order.paymentMethod }),
+            },
+          })
+          .catch(() => {
+            /* аналитика не должна ломать заказ */
+          });
+      }
       // Магазин узнаёт о заказе сразу, а не когда кто-то откроет админку.
       // Не ждём ответа Telegram: покупателю нечего делать с его ошибками.
       void notifyShop(

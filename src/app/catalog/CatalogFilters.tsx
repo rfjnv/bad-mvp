@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
+import { track } from "@/lib/track";
 
 interface Category {
   id: string;
@@ -54,6 +55,17 @@ export default function CatalogFilters({
     const sort = params.get("sort");
     router.push(sort ? `/catalog?sort=${sort}` : "/catalog");
   }
+
+  // Поисковый запрос считаем один раз, когда каталог уже отдал результат:
+  // запрос без результатов — самый полезный сигнал о том, чего нет в ассортименте
+  const activeQ = searchParams.get("q") ?? "";
+  const lastTrackedQ = useRef("");
+  useEffect(() => {
+    const query = activeQ.trim();
+    if (!query || query === lastTrackedQ.current) return;
+    lastTrackedQ.current = query;
+    track("search", query.toLowerCase().slice(0, 100), { results: total });
+  }, [activeQ, total]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);

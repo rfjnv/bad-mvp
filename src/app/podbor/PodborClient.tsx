@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import ProductCard, { type ProductCardData } from "@/components/ProductCard";
 import { CONDITIONS, recommendFor } from "@/lib/lifestyle";
+import { track } from "@/lib/track";
 
 export interface CatalogItem extends ProductCardData {
   categorySlug: string;
@@ -19,9 +20,10 @@ export default function PodborClient({
   const [selected, setSelected] = useState<string[]>([]);
 
   function toggle(slug: string) {
-    setSelected((prev) =>
-      prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]
-    );
+    const turningOn = !selected.includes(slug);
+    // Считаем только включения: это и есть ответ, какие условия про людей
+    if (turningOn) track("condition_select", slug);
+    setSelected((prev) => (turningOn ? [...prev, slug] : prev.filter((s) => s !== slug)));
   }
 
   const recommendations = recommendFor(selected);

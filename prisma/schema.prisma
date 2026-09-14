@@ -183,3 +183,25 @@ model AdminUser {
   passwordHash String
   createdAt    DateTime @default(now())
 }
+
+/// Событие поведения на витрине. Анонимно: sessionId — случайный
+/// идентификатор браузера, никаких имён, телефонов и IP.
+/// Из этих строк собирается воронка и статистика подбора в админке.
+model Event {
+  id        String   @id @default(cuid())
+  /// page_view, product_view, add_to_cart, checkout_start, order_created,
+  /// goal_select, condition_select, search, bundle_add
+  type      String
+  sessionId String
+  /// Путь страницы для page_view; для остальных — где произошло событие
+  path      String?
+  /// Главный атрибут события: slug товара, цели, условия или поисковый запрос
+  key       String?
+  /// Дополнительные данные в JSON: количество, число результатов, сумма
+  meta      String?
+  createdAt DateTime @default(now())
+
+  @@index([type, createdAt])
+  @@index([sessionId])
+  @@index([createdAt])
+}

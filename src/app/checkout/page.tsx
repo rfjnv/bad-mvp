@@ -11,6 +11,7 @@ import EmptyState from "@/components/EmptyState";
 import StickyBar from "@/components/StickyBar";
 import CompatibilityPanel from "@/components/CompatibilityPanel";
 import { deliveryFee, DELIVERY_TERMS } from "@/lib/delivery";
+import { track, getSessionId } from "@/lib/track";
 import { findInteractions } from "@/lib/compatibility";
 import { getActiveBundle, isBundleValid, clearActiveBundle, type ActiveBundle } from "@/lib/bundleCart";
 
@@ -59,6 +60,7 @@ export default function CheckoutPage() {
       .then((data) => {
         pruneCart(data.knownSlugs ?? []);
         setLines(data.lines);
+        if (data.lines.length > 0) track("checkout_start", undefined, { items: data.lines.length, total: data.total });
       });
   }, []);
 
@@ -120,6 +122,7 @@ export default function CheckoutPage() {
             .filter((l) => l.product)
             .map((l) => ({ slug: l.slug, quantity: l.quantity })),
           appliedBundleSlug: bundleValid ? activeBundle?.slug : undefined,
+          sessionId: getSessionId() || undefined,
         }),
       });
       const data = await res.json();

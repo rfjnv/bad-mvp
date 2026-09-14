@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { addToCart, getCart, CART_CHANGED_EVENT } from "@/lib/cart";
+import { track } from "@/lib/track";
 import { t } from "@/lib/i18n";
 import { formatSum } from "@/lib/format";
 import StickyBar from "@/components/StickyBar";
@@ -54,6 +55,7 @@ export default function ProductAddToCart({
 
   function add() {
     addToCart(slug, qty, stock);
+    track("add_to_cart", slug, { quantity: qty, from: "product" });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   }

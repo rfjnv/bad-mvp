@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { setCartQuantity } from "@/lib/cart";
 import { setActiveBundle } from "@/lib/bundleCart";
+import { track } from "@/lib/track";
 import { t } from "@/lib/i18n";
 
 interface BundleProductInfo {
@@ -35,6 +36,7 @@ export default function AddBundleButton({
       discountPct,
       productSlugs: products.map((p) => p.slug),
     });
+    track("bundle_add", slug);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   }

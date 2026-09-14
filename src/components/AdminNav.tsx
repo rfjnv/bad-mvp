@@ -6,6 +6,7 @@ import { t } from "@/lib/i18n";
 
 const LINKS = [
   { href: "/admin", label: t.admin.dashboard },
+  { href: "/admin/analytics", label: "Аналитика" },
   { href: "/admin/products", label: t.admin.products },
   { href: "/admin/orders", label: t.admin.orders },
   { href: "/admin/categories", label: t.admin.categories },

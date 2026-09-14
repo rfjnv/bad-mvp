@@ -28,6 +28,8 @@ export const checkoutSchema = z.object({
   paymentMethod: z.enum(["CASH", "PAYME", "CLICK"]),
   items: z.array(checkoutItemSchema).min(1, "Корзина пуста"),
   appliedBundleSlug: z.string().trim().min(1).optional(),
+  // Анонимный id сессии из аналитики — замыкает воронку на реальном заказе
+  sessionId: z.string().min(8).max(64).optional(),
 });
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 

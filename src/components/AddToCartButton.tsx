@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { addToCart } from "@/lib/cart";
+import { track } from "@/lib/track";
 import { t } from "@/lib/i18n";
 
 export default function AddToCartButton({
@@ -34,6 +35,7 @@ export default function AddToCartButton({
         e.preventDefault();
         e.stopPropagation();
         addToCart(slug, quantity, stock);
+        track("add_to_cart", slug, { quantity, from: "card" });
         setAdded(true);
         setTimeout(() => setAdded(false), 1200);
       }}
