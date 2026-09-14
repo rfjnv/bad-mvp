@@ -1,0 +1,18 @@
+# Планировщик напоминаний «банка заканчивается».
+# На бесплатном Render нет cron, а сервис засыпает — GitHub Actions дёргает
+# эндпоинт раз в час. Повторные вызовы безопасны: идемпотентность в базе.
+# Секрет CRON_SECRET положить в Settings → Secrets → Actions репозитория.
+name: reminders
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Запустить напоминания
+        run: |
+          curl -sS --fail-with-body --max-time 120 \
+            -X POST "https://bad-mvp.onrender.com/api/cron/reminders" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

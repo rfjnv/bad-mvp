@@ -9,6 +9,7 @@ import { notifyShop, buildOrderNotification } from "@/lib/telegram";
 import { computeDuration, expectedFinishDate } from "@/lib/duration";
 import { randomBytes } from "crypto";
 import { getCurrentUser } from "@/lib/currentUser";
+import { markRepeated } from "@/lib/reminders";
 
 export async function POST(req: NextRequest) {
   const json = await req.json().catch(() => null);
@@ -127,6 +128,10 @@ export async function POST(req: NextRequest) {
         items: resolved.map((r) => ({ name: r.name, quantity: r.quantity, priceAtPurchase: r.unitPrice })),
       };
     }).then(async ({ order, items }) => {
+      if (input.repeatOfId) {
+        // Конверсия напоминаний: заказ пришёл со страницы повтора
+        await markRepeated(input.repeatOfId, order.id).catch(() => {});
+      }
       if (input.sessionId) {
         await prisma.event
           .create({

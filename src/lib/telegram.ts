@@ -39,7 +39,16 @@ export interface SendMessageResult {
  * работает в режиме песочницы: реального запроса нет, возвращается
  * то, что было бы отправлено — как и в src/lib/payments/*.
  */
-export async function sendTelegramMessage(chatId: string, text: string): Promise<SendMessageResult> {
+export interface InlineButton {
+  text: string;
+  url: string;
+}
+
+export async function sendTelegramMessage(
+  chatId: string,
+  text: string,
+  buttons?: InlineButton[]
+): Promise<SendMessageResult> {
   const { sandbox, botToken } = getTelegramConfig();
 
   if (sandbox) {
@@ -50,7 +59,12 @@ export async function sendTelegramMessage(chatId: string, text: string): Promise
     const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text }),
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        // Кнопка под сообщением — ссылка на повтор заказа в одно нажатие
+        reply_markup: buttons?.length ? { inline_keyboard: [buttons.map((b) => ({ text: b.text, url: b.url }))] } : undefined,
+      }),
     });
     if (!res.ok) {
       const body = await res.text().catch(() => "");
@@ -145,4 +159,10 @@ export function buildReminderMessage(items: string[]): string {
   }
   const list = items.map((name) => `• ${name}`).join("\n");
   return `Не забудьте сегодняшний приём:\n${list}\n\nОтметить как принято можно в разделе «Мой приём» на сайте.`;
+}
+
+/** «NOW Магний цитрат заканчивается около 23 декабря. Повторить заказ?» */
+export function buildFinishReminder(productName: string, finishAt: Date): string {
+  const when = finishAt.toLocaleDateString("ru-RU", { day: "numeric", month: "long", timeZone: "Asia/Tashkent" });
+  return `${productName} заканчивается около ${when}. Повторить заказ?`;
 }

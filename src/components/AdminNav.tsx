@@ -9,6 +9,7 @@ const LINKS = [
   { href: "/admin/analytics", label: "Аналитика" },
   { href: "/admin/products", label: t.admin.products },
   { href: "/admin/orders", label: t.admin.orders },
+  { href: "/admin/repeats", label: "Повторы" },
   { href: "/admin/categories", label: t.admin.categories },
   { href: "/admin/banners", label: t.admin.banners },
   { href: "/admin/bundles", label: t.admin.bundles },

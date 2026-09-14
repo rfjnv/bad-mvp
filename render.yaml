@@ -13,6 +13,9 @@ services:
       # Прямое подключение без пулера — только для prisma migrate deploy
       - key: DIRECT_URL
         sync: false
+      # Секрет планировщика напоминаний
+      - key: CRON_SECRET
+        generateValue: true
       - key: SESSION_SECRET
         generateValue: true
       - key: NODE_ENV
