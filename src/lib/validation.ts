@@ -30,6 +30,8 @@ export const checkoutSchema = z.object({
   appliedBundleSlug: z.string().trim().min(1).optional(),
   // Анонимный id сессии из аналитики — замыкает воронку на реальном заказе
   sessionId: z.string().min(8).max(64).optional(),
+  // Заказ, с которого сделан повтор, — для конверсии напоминаний
+  repeatOfId: z.string().min(1).optional(),
 });
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 
@@ -76,6 +78,9 @@ export const productSchema = z.object({
   activeAmount: z.number().positive().nullable().optional(),
   activeUnit: z.string().trim().max(20).nullable().optional(),
   servingsPerPackage: z.number().int().positive().nullable().optional(),
+  unitsPerPack: z.number().int().positive().nullable().optional(),
+  unitType: z.enum(["CAPSULE", "TABLET", "GRAM", "ML", "SCOOP"]).nullable().optional(),
+  dailyDose: z.number().positive().max(100).nullable().optional(),
   isActive: z.boolean().default(true),
 });
 export type ProductInput = z.infer<typeof productSchema>;

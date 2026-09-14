@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { formatSum } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { computePricePerUnit, formatPricePerUnit } from "@/lib/activeValue";
+import { computeDuration, formatDuration } from "@/lib/duration";
 import ProductAddToCart from "@/components/ProductAddToCart";
 import ProductCard from "@/components/ProductCard";
 import AddToTrackerButton from "@/components/AddToTrackerButton";
@@ -61,6 +62,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const hasDiscount = Boolean(product.oldPrice && product.oldPrice > product.price);
   const discountPct = hasDiscount ? Math.round((1 - product.price / product.oldPrice!) * 100) : 0;
   const perUnit = computePricePerUnit(product);
+  const duration = computeDuration(product);
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 pb-28 sm:pb-12 flex flex-col gap-8">
@@ -116,6 +118,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </div>
             {perUnit && (
               <div className="text-sm text-text-dim mt-1">{formatPricePerUnit(perUnit)}</div>
+            )}
+            {/* Цена за день приёма — продолжение той же мысли, что и цена за мг:
+                видно, за что платишь, и в единицах, которые понятны без калькулятора */}
+            {duration && (
+              <div className="text-sm mt-2 border-l-2 border-border-strong pl-3">
+                {formatDuration(duration)} ·{" "}
+                <span className="font-semibold">≈ {formatSum(duration.pricePerDay)}/день</span>
+              </div>
             )}
           </div>
 

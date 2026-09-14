@@ -46,6 +46,9 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           activeAmount: product.activeAmount,
           activeUnit: product.activeUnit ?? "",
           servingsPerPackage: product.servingsPerPackage,
+          unitsPerPack: product.unitsPerPack,
+          unitType: product.unitType ?? "",
+          dailyDose: product.dailyDose,
           isActive: product.isActive,
         }}
       />

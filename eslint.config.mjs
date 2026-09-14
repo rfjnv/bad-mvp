@@ -18,6 +18,8 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      // Служебные CommonJS-скрипты для базы — не часть приложения
+      "scripts/*.cjs",
     ],
   },
 ];

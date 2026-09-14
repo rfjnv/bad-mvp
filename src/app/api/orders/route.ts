@@ -6,6 +6,8 @@ import { nextOrderNumber } from "@/lib/orderNumber";
 import { getPaymentProvider } from "@/lib/payments";
 import { deliveryFee } from "@/lib/delivery";
 import { notifyShop, buildOrderNotification } from "@/lib/telegram";
+import { computeDuration, expectedFinishDate } from "@/lib/duration";
+import { randomBytes } from "crypto";
 
 export async function POST(req: NextRequest) {
   const json = await req.json().catch(() => null);
@@ -54,7 +56,7 @@ export async function POST(req: NextRequest) {
       }
 
       let totalAmount = 0;
-      const resolved: { productId: string; name: string; quantity: number; unitPrice: number }[] = [];
+      const resolved: { productId: string; name: string; quantity: number; unitPrice: number; finishAt: Date | null }[] = [];
       for (const item of input.items) {
         const product = bySlug.get(item.slug);
         if (!product || !product.isActive) {
@@ -66,7 +68,11 @@ export async function POST(req: NextRequest) {
         const unitPrice = discountedIds.has(product.id)
           ? Math.round(product.price * (1 - bundleDiscountPct / 100))
           : product.price;
-        resolved.push({ productId: product.id, name: product.name, quantity: item.quantity, unitPrice });
+        // Когда закончится банка: пока считаем от даты заказа — доставляем
+        // в день заказа; при переходе в DELIVERED пересчитаем от факта
+        const d = computeDuration(product);
+        const finishAt = d ? expectedFinishDate(new Date(), d.days, item.quantity) : null;
+        resolved.push({ productId: product.id, name: product.name, quantity: item.quantity, unitPrice, finishAt });
         totalAmount += unitPrice * item.quantity;
       }
 
@@ -90,11 +96,15 @@ export async function POST(req: NextRequest) {
           paymentMethod: input.paymentMethod,
           paymentStatus: input.paymentMethod === "CASH" ? "PENDING" : "PENDING",
           totalAmount,
+          // Токен для страницы «Повторить заказ» из напоминания — без пароля
+          repeatToken: randomBytes(24).toString("base64url"),
+          repeatOfId: input.repeatOfId ?? null,
           items: {
             create: resolved.map((r) => ({
               productId: r.productId,
               quantity: r.quantity,
               priceAtPurchase: r.unitPrice,
+              expectedFinishAt: r.finishAt,
             })),
           },
         },

@@ -5,6 +5,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { t } from "@/lib/i18n";
 import { UNIT_BASIS } from "@/lib/activeValue";
+import { computeDuration, formatDuration, UNIT_LABELS, type UnitType } from "@/lib/duration";
 
 interface Category {
   id: string;
@@ -36,6 +37,9 @@ export interface ProductFormValues {
   activeAmount: number | null;
   activeUnit: string;
   servingsPerPackage: number | null;
+  unitsPerPack: number | null;
+  unitType: UnitType | "";
+  dailyDose: number | null;
   isActive: boolean;
 }
 
@@ -63,6 +67,9 @@ const EMPTY: ProductFormValues = {
   activeAmount: null,
   activeUnit: "",
   servingsPerPackage: null,
+  unitsPerPack: null,
+  unitType: "",
+  dailyDose: null,
   isActive: true,
 };
 
@@ -135,6 +142,9 @@ export default function ProductForm({
       activeAmount: values.activeAmount || null,
       activeUnit: values.activeUnit || null,
       servingsPerPackage: values.servingsPerPackage || null,
+      unitsPerPack: values.unitsPerPack || null,
+      unitType: values.unitType || null,
+      dailyDose: values.dailyDose || null,
     };
 
     const res = await fetch(values.id ? `/api/admin/products/${values.id}` : "/api/admin/products", {
@@ -330,6 +340,64 @@ export default function ProductForm({
           Заполните, чтобы на карточке товара показывалась цена за 1000 МЕ / 100 мг и т.п. —
           так покупатель сравнивает не упаковки, а реальную ценность.
         </p>
+      </div>
+
+      <div className="border-t border-border pt-4">
+        <div className="text-sm font-semibold mb-3">
+          На сколько хватит <span className="text-text-dim font-normal">(для напоминаний о повторе)</span>
+        </div>
+        <div className="grid sm:grid-cols-3 gap-4">
+          <Field label="Единиц в упаковке">
+            <input
+              type="number"
+              value={values.unitsPerPack ?? ""}
+              onChange={(e) => set("unitsPerPack", e.target.value ? Number(e.target.value) : null)}
+              placeholder="200"
+              className="w-full px-3 py-2 rounded-lg bg-bg-panel-2 border border-border"
+            />
+          </Field>
+          <Field label="Единица">
+            <select
+              value={values.unitType}
+              onChange={(e) => set("unitType", e.target.value as UnitType | "")}
+              className="w-full px-3 py-2 rounded-lg bg-bg-panel-2 border border-border"
+            >
+              <option value="">—</option>
+              {(Object.keys(UNIT_LABELS) as UnitType[]).map((u) => (
+                <option key={u} value={u}>
+                  {UNIT_LABELS[u].one}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Единиц в день">
+            <input
+              type="number"
+              step="0.5"
+              value={values.dailyDose ?? ""}
+              onChange={(e) => set("dailyDose", e.target.value ? Number(e.target.value) : null)}
+              placeholder="2"
+              className="w-full px-3 py-2 rounded-lg bg-bg-panel-2 border border-border"
+            />
+          </Field>
+        </div>
+        {(() => {
+          const d = computeDuration({
+            unitsPerPack: values.unitsPerPack,
+            unitType: values.unitType || null,
+            dailyDose: values.dailyDose,
+            price: values.price,
+          });
+          return d ? (
+            <p className="text-sm mt-2 border-l-2 border-border-strong pl-3">
+              {formatDuration(d)} · <span className="font-medium">≈ {d.pricePerDay.toLocaleString("ru-RU")} сум/день</span>
+            </p>
+          ) : (
+            <p className="text-xs text-text-dim mt-2">
+              Порошки и дозы «1–2 капсулы» заполняются здесь вручную — автоматически не распознаются.
+            </p>
+          );
+        })()}
       </div>
 
       <Field label="Изображение">
