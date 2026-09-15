@@ -150,9 +150,13 @@ function checkDuplicateSubstances(items: CompatibilityItem[]): InteractionMatch[
     let doseText: string | null = null;
 
     if (units.size === 1) {
+      // Единица уже одна и та же у всех товаров группы — считаем в ней же.
+      // Йод здесь всегда в мкг: пересчёт в «1.15 мг» формально верен, но
+      // так дозу йода никто не обсуждает — с этой единицей никогда и работали.
       const [unit] = units;
       const sum = g.amounts.reduce((s, a) => s + a.amount, 0);
-      doseText = unit in MASS_TO_MG ? formatMg(sum * MASS_TO_MG[unit]) : `${sum} ${unit}`;
+      const rounded = Math.round(sum * 100) / 100;
+      doseText = `${rounded.toLocaleString("ru-RU")} ${unit}`;
     } else if ([...units].every((u) => u in MASS_TO_MG)) {
       const sumMg = g.amounts.reduce((s, a) => s + a.amount * MASS_TO_MG[a.unit], 0);
       doseText = formatMg(sumMg);
