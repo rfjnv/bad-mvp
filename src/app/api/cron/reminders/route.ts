@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runReminders } from "@/lib/reminders";
+import { sendPendingDeliveryPrompts, sendDeliveryPromptFollowUps } from "@/lib/deliveryPrompts";
 
 /**
  * Ежедневный запуск напоминаний. На бесплатном Render планировщика нет,
@@ -19,7 +20,9 @@ async function handle(req: NextRequest) {
   if (!authorized(req)) return NextResponse.json({ error: "Нет доступа" }, { status: 401 });
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? req.nextUrl.origin;
   const result = await runReminders(siteUrl);
-  return NextResponse.json(result);
+  const deliveryPrompts = await sendPendingDeliveryPrompts();
+  const deliveryPromptFollowUps = await sendDeliveryPromptFollowUps();
+  return NextResponse.json({ ...result, deliveryPrompts, deliveryPromptFollowUps });
 }
 
 export const POST = handle;

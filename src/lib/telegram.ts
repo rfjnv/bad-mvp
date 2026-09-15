@@ -61,10 +61,16 @@ export interface InlineButton {
   url: string;
 }
 
+/** Кнопка, которая не открывает ссылку, а шлёт апдейт callback_query — для ответов внутри чата */
+export interface CallbackButton {
+  text: string;
+  callback_data: string;
+}
+
 export async function sendTelegramMessage(
   chatId: string,
   text: string,
-  buttons?: InlineButton[]
+  buttons?: (InlineButton | CallbackButton)[]
 ): Promise<SendMessageResult> {
   const { sandbox, botToken } = getTelegramConfig();
 
@@ -79,8 +85,7 @@ export async function sendTelegramMessage(
       body: JSON.stringify({
         chat_id: chatId,
         text,
-        // Кнопка под сообщением — ссылка на повтор заказа в одно нажатие
-        reply_markup: buttons?.length ? { inline_keyboard: [buttons.map((b) => ({ text: b.text, url: b.url }))] } : undefined,
+        reply_markup: buttons?.length ? { inline_keyboard: [buttons] } : undefined,
       }),
     });
     if (!res.ok) {
@@ -96,6 +101,25 @@ export async function sendTelegramMessage(
     return { ok: true, sandbox: false, preview: text };
   } catch (err) {
     return { ok: false, sandbox: false, preview: text, error: String(err) };
+  }
+}
+
+/**
+ * Останавливает «крутилку» на нажатой inline-кнопке. Без этого вызова
+ * Telegram показывает кнопку загружающейся до таймаута — нужен на каждый
+ * callback_query, даже если ответного текста нет.
+ */
+export async function answerCallbackQuery(callbackQueryId: string, text?: string): Promise<void> {
+  const { sandbox, botToken } = getTelegramConfig();
+  if (sandbox) return;
+  try {
+    await fetch(`https://api.telegram.org/bot${botToken}/answerCallbackQuery`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ callback_query_id: callbackQueryId, text }),
+    });
+  } catch {
+    // Не критично: сообщение всё равно уже отправляется отдельно
   }
 }
 
@@ -188,4 +212,66 @@ export function buildReminderMessage(items: string[]): string {
 export function buildFinishReminder(productName: string, finishAt: Date): string {
   const when = finishAt.toLocaleDateString("ru-RU", { day: "numeric", month: "long", timeZone: "Asia/Tashkent" });
   return `${productName} заканчивается около ${when}. Повторить заказ?`;
+}
+
+// ── Задача A: что происходит после доставки ──────────────────────────
+
+export function buildDeliveryPromptMessage(orderNumber: string): string {
+  return `Заказ ${orderNumber} доставлен. Добавить товары в «Мой приём»?`;
+}
+
+export function deliveryPromptButtons(orderId: string): CallbackButton[] {
+  return [
+    { text: "Да, это мне", callback_data: `dp:self:${orderId}` },
+    { text: "Это не мне — в подарок", callback_data: `dp:gift:${orderId}` },
+    { text: "Позже", callback_data: `dp:later:${orderId}` },
+  ];
+}
+
+export interface RoutineItemForMessage {
+  name: string;
+  dosage: string;
+}
+
+/** Короткий план после «Да, это мне»: что, сколько, когда */
+export function buildSelfAddedMessage(items: RoutineItemForMessage[]): string {
+  const lines = items.map((i) => `• ${i.name} — ${i.dosage}`);
+  return [
+    "Добавил в «Мой приём»:",
+    ...lines,
+    "",
+    "Напомню, когда будет пора повторить заказ. Отмечать приём — в разделе «Мой приём» на сайте.",
+  ].join("\n");
+}
+
+export function buildLaterMessage(): string {
+  return "Хорошо, спрошу ещё раз через пару дней.";
+}
+
+/** Сразу после «В подарок» — ссылка готова, больше делать ничего не нужно */
+export function buildGiftReadyMessage(planUrl: string): string {
+  return [
+    "Готово! Ссылка на план приёма:",
+    planUrl,
+    "",
+    "Отправьте её тому, для кого брали — он сможет отслеживать приём у себя, без вашего участия.",
+    "Можно добавить личный комментарий (например, как принимать) — откройте ссылку сами и впишите его перед отправкой.",
+  ].join("\n");
+}
+
+export interface PlanItemForMessage {
+  name: string;
+  dosage: string;
+}
+
+/** Текст плана целиком — и для копируемого блока на странице, и для /start plan_<token> */
+export function buildPlanGuideText(items: PlanItemForMessage[], comment: string | null): string {
+  const lines = items.map((i) => `• ${i.name} — ${i.dosage}`);
+  const parts = ["План приёма:", ...lines];
+  if (comment) parts.push("", comment);
+  return parts.join("\n");
+}
+
+export function buildPlanNotFoundMessage(): string {
+  return "Этот план не найден — возможно, ссылка устарела или отозвана. Попросите новую у того, кто её отправил.";
 }

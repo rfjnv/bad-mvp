@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { orderStatusSchema } from "@/lib/validation";
 import { computeDuration, expectedFinishDate } from "@/lib/duration";
+import { sendPendingDeliveryPrompts } from "@/lib/deliveryPrompts";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -23,7 +24,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const status = parsed.data.status;
 
   try {
-    const order = await prisma.$transaction(async (tx) => {
+    const { order, becameDelivered } = await prisma.$transaction(async (tx) => {
       const current = await tx.order.findUnique({
         where: { id },
         include: { items: { include: { product: true } } },
@@ -44,10 +45,23 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
             data: { expectedFinishAt: d ? expectedFinishDate(deliveredAt!, d.days, item.quantity) : null },
           });
         }
+        await tx.deliveryPrompt.upsert({
+          where: { orderId: id },
+          create: { orderId: id },
+          update: {},
+        });
       }
 
-      return tx.order.update({ where: { id }, data: { status, deliveredAt } });
+      const updated = await tx.order.update({ where: { id }, data: { status, deliveredAt } });
+      return { order: updated, becameDelivered: becomesDelivered };
     });
+
+    if (becameDelivered) {
+      // Не ждём Telegram — то же правило, что и у уведомлений магазину.
+      // Если канал ещё не подключён или сеть моргнёт, часовой cron дошлёт.
+      void sendPendingDeliveryPrompts();
+    }
+
     return NextResponse.json(order);
   } catch (e) {
     if (e instanceof NotFound) return NextResponse.json({ error: "Заказ не найден" }, { status: 404 });

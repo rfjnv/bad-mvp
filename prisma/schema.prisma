@@ -51,6 +51,18 @@ enum ReminderStatus {
   REPEATED
 }
 
+/// Статус вопроса «это вам или в подарок?» после доставки заказа
+enum DeliveryPromptStatus {
+  PENDING
+  SENT
+  /// Нажали «Позже» — через 2 дня разовый повтор, дальше не спрашиваем
+  SNOOZED
+  ANSWERED_SELF
+  ANSWERED_GIFT
+  /// Гость без Telegram-канала — некому отправить, но вопрос не потерян
+  NO_CHANNEL
+}
+
 enum SubscriptionPlan {
   BASIC
   COMPLEX
@@ -146,6 +158,8 @@ model Order {
   userId          String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+  deliveryPrompt  DeliveryPrompt?
+  plans           Plan[]
 
   @@index([userId])
 }
@@ -269,6 +283,51 @@ model Reminder {
   @@index([status, dueAt])
 }
 
+/// Вопрос «это вам или в подарок?» после перехода заказа в DELIVERED.
+/// orderId уникален — один вопрос на заказ, идемпотентность на уровне базы,
+/// как и у Reminder.
+model DeliveryPrompt {
+  id             String               @id @default(cuid())
+  order          Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId        String               @unique
+  status         DeliveryPromptStatus @default(PENDING)
+  sentAt         DateTime?
+  snoozedAt      DateTime?
+  followUpSentAt DateTime?
+  answeredAt     DateTime?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@index([status, snoozedAt])
+}
+
+/// План приёма, которым можно поделиться — «в подарок» из DeliveryPrompt.
+/// Владелец и получатель — не поля заказа, а отдельная сущность (см. чат):
+/// позже на этих же парах (ownerId, recipientUserId) можно построить «Мою семью»,
+/// не трогая Order.
+model Plan {
+  id              String    @id @default(cuid())
+  /// Длинный криптослучайный токен для /plan/<token>. Меняется при отзыве —
+  /// старый токен просто перестаёт существовать, а не «занят».
+  token           String    @unique
+  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId         String
+  /// Пусто для гостя, выбравшего «в подарок» без входа — привязывается,
+  /// когда гость впервые войдёт на странице заказа (см. /api/orders/[id]/claim)
+  owner           User?     @relation("PlanOwner", fields: [ownerId], references: [id])
+  ownerId         String?
+  recipient       User?     @relation("PlanRecipient", fields: [recipientUserId], references: [id])
+  recipientUserId String?
+  /// Личный текст отправителя («Пап, магний по 2 капсулы после ужина»)
+  comment         String?
+  claimedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([ownerId])
+  @@index([recipientUserId])
+}
+
 /// Покупатель, вошедший через Telegram. Пароля нет: личность подтверждает
 /// подпись Telegram Login Widget (HMAC на токене бота), проверенная на сервере.
 model User {
@@ -297,6 +356,8 @@ model User {
   orders           Order[]
   routine          RoutineItem[]
   intake           IntakeLog[]
+  plansSent        Plan[]        @relation("PlanOwner")
+  plansReceived    Plan[]        @relation("PlanRecipient")
 }
 
 /// Товар в списке приёма пользователя. Серверная замена localStorage —

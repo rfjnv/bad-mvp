@@ -20,7 +20,7 @@ const DEFAULT_DAYS_BEFORE = 7;
 const LOOKAHEAD_DAYS = 45;
 const TASHKENT_OFFSET_HOURS = 5;
 
-function tashkentHour(now: Date): number {
+export function tashkentHour(now: Date): number {
   return (now.getUTCHours() + TASHKENT_OFFSET_HOURS) % 24;
 }
 

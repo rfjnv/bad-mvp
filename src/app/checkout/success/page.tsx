@@ -5,6 +5,8 @@ import { formatSum } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { PAYMENT_STATUS_LABELS } from "@/lib/i18n";
 import ConnectTelegramPrompt from "@/components/ConnectTelegramPrompt";
+import DeliveryResponsePrompt from "@/components/DeliveryResponsePrompt";
+import { getTelegramConfig } from "@/lib/telegram";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +20,14 @@ export default async function CheckoutSuccessPage({
 
   const order = await prisma.order.findUnique({ where: { id: orderId } });
   if (!order) notFound();
+
+  const deliveryPrompt =
+    order.status === "DELIVERED" ? await prisma.deliveryPrompt.findUnique({ where: { orderId: order.id } }) : null;
+  const showDeliveryPrompt =
+    order.status === "DELIVERED" &&
+    deliveryPrompt?.status !== "ANSWERED_SELF" &&
+    deliveryPrompt?.status !== "ANSWERED_GIFT";
+  const { botUsername } = getTelegramConfig();
 
   return (
     <div className="max-w-md mx-auto px-4 py-20 text-center flex flex-col items-center gap-3">
@@ -42,7 +52,11 @@ export default async function CheckoutSuccessPage({
         </div>
       </div>
 
-      <ConnectTelegramPrompt />
+      {showDeliveryPrompt ? (
+        <DeliveryResponsePrompt orderId={order.id} botUsername={botUsername || null} />
+      ) : (
+        <ConnectTelegramPrompt />
+      )}
 
       <Link href="/catalog" className="mt-4 px-5 py-2.5 rounded-lg btn btn-primary font-semibold">
         {t.success.backToCatalog}
