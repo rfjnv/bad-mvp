@@ -80,11 +80,12 @@ const PRODUCT_FORM: Record<string, { form: string; formNote: string; source: str
   },
 
   // Коллаген — формат приёма, не химия
-  "now-collagen-peptides-16oz": {
-    form: "Порошок, гидролизованный",
-    formNote: "Без выраженного вкуса, растворяется в напитках — крупная порция за приём.",
-    source: "https://www.nowfoods.com/products/supplements/collagen-peptides-powder",
-  },
+  // now-collagen-peptides-16oz — при аудите duration_days (см. чат)
+  // выяснилось, что реальный NOW "Collagen Peptides Powder" продаётся
+  // только в 227 г; 454 г есть лишь у другого товара бренда с другим
+  // составом ("Multi Collagen Protein"). Похоже на то же несовпадение
+  // SKU, что и ниже у Solaray — форма не заполняется, пока не проверят
+  // по этикетке на складе.
   // solaray-collagen-complex-90 — на solaray.com нет коллагена в формате
   // «1000 мг гидролизованного + 60 мг вит. C, 90 капс»: у бренда Collagen
   // Bone Complete и Collagen Keratin — другой состав. Форма не заполнена.
