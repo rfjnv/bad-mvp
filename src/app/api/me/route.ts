@@ -13,6 +13,8 @@ export async function GET() {
       remindersEnabled: user.remindersEnabled,
       remindDaysBefore: user.remindDaysBefore,
       remindHour: user.remindHour,
+      intakeRemindersEnabled: user.intakeRemindersEnabled,
+      orderStatusNotificationsEnabled: user.orderStatusNotificationsEnabled,
       remindHourMorning: user.remindHourMorning,
       remindHourAfternoon: user.remindHourAfternoon,
       remindHourEvening: user.remindHourEvening,

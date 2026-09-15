@@ -10,6 +10,8 @@ export interface CurrentUser {
   remindersEnabled: boolean;
   remindDaysBefore: number;
   remindHour: number;
+  intakeRemindersEnabled: boolean;
+  orderStatusNotificationsEnabled: boolean;
   remindHourMorning: number;
   remindHourAfternoon: number;
   remindHourEvening: number;

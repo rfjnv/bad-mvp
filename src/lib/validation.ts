@@ -105,7 +105,11 @@ export const bannerSchema = z.object({
 });
 
 export const orderStatusSchema = z.object({
-  status: z.enum(["NEW", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"]),
+  status: z.enum(["NEW", "CONFIRMED", "PACKED", "WITH_COURIER", "IN_TRANSIT", "SHIPPED", "DELIVERED", "CANCELLED", "RETURNED"]),
+  courierPhone: z.string().trim().max(30).nullable().optional(),
+  cancelReason: z.string().trim().max(300).nullable().optional(),
+  /** «без уведомления» в админке — по умолчанию шлём */
+  notify: z.boolean().default(true),
 });
 
 export const subscriptionRequestSchema = z.object({

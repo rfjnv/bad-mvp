@@ -1,6 +1,7 @@
 import { prisma } from "./prisma";
 import { buildFinishReminder, sendTelegramMessage, getTelegramConfig } from "./telegram";
 import { computeRemaining, type IntakeMark } from "./routineStats";
+import { canSendBotMessage, recordBotMessage } from "./botMessageBudget";
 
 /**
  * Напоминания «банка заканчивается».
@@ -159,6 +160,13 @@ export async function runReminders(siteUrl: string, now = new Date()): Promise<R
       continue;
     }
 
+    // Суточный бюджет сообщений — не влезло сегодня, попробуем завтра,
+    // не копим и не досылаем позже в тот же день
+    if (!(await canSendBotMessage(user.id, "BANK_REMINDER", now))) {
+      result.waiting++;
+      continue;
+    }
+
     const text = buildFinishReminder(r.orderItem.product.name, r.orderItem.expectedFinishAt ?? r.dueAt);
     const buttons = order.repeatToken
       ? [{ text: "Повторить заказ", url: `${siteUrl}/repeat/${order.repeatToken}` }]
@@ -184,6 +192,7 @@ export async function runReminders(siteUrl: string, now = new Date()): Promise<R
       where: { id: r.id },
       data: { status: "SENT", sentAt: now },
     });
+    await recordBotMessage(user.id, "BANK_REMINDER", now);
     result.sent++;
   }
 

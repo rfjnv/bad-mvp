@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { sendTelegramMessage, buildDeliveryPromptMessage, deliveryPromptButtons } from "@/lib/telegram";
 import { tashkentHour } from "@/lib/reminders";
+import { canSendBotMessage, recordBotMessage } from "@/lib/botMessageBudget";
 
 const FOLLOW_UP_AFTER_MS = 2 * 24 * 60 * 60 * 1000;
 
@@ -26,6 +27,8 @@ export async function sendPendingDeliveryPrompts(): Promise<{ sent: number; noCh
       continue;
     }
 
+    if (!(await canSendBotMessage(user.id, "DELIVERY_PROMPT"))) continue; // не влезло сегодня — остаётся PENDING на завтра
+
     const result = await sendTelegramMessage(
       user.telegramId,
       buildDeliveryPromptMessage(p.order.orderNumber),
@@ -37,6 +40,7 @@ export async function sendPendingDeliveryPrompts(): Promise<{ sent: number; noCh
       where: { id: p.id },
       data: { status: "SENT", sentAt: new Date() },
     });
+    await recordBotMessage(user.id, "DELIVERY_PROMPT");
     sent++;
   }
 
@@ -65,6 +69,7 @@ export async function sendDeliveryPromptFollowUps(now = new Date()): Promise<{ s
     const user = p.order.user;
     if (!user || !user.reminderChannelConnectedAt) continue;
     if (hour < user.remindHour) continue; // ждём своего часа, не шлём раньше
+    if (!(await canSendBotMessage(user.id, "DELIVERY_PROMPT", now))) continue;
 
     const result = await sendTelegramMessage(
       user.telegramId,
@@ -77,6 +82,7 @@ export async function sendDeliveryPromptFollowUps(now = new Date()): Promise<{ s
       where: { id: p.id },
       data: { followUpSentAt: now },
     });
+    await recordBotMessage(user.id, "DELIVERY_PROMPT", now);
     sent++;
   }
 

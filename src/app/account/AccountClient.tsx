@@ -83,6 +83,8 @@ export default function AccountClient({ botUsername }: { botUsername: string | n
       <ReminderSettings
         initial={{
           remindersEnabled: user.remindersEnabled,
+          intakeRemindersEnabled: user.intakeRemindersEnabled,
+          orderStatusNotificationsEnabled: user.orderStatusNotificationsEnabled,
           remindDaysBefore: user.remindDaysBefore,
           remindHour: user.remindHour,
           remindHourMorning: user.remindHourMorning,
@@ -395,6 +397,8 @@ function ReminderSettings({
 }: {
   initial: {
     remindersEnabled: boolean;
+    intakeRemindersEnabled: boolean;
+    orderStatusNotificationsEnabled: boolean;
     remindDaysBefore: number;
     remindHour: number;
     remindHourMorning: number;
@@ -419,14 +423,32 @@ function ReminderSettings({
 
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="display-2">Напоминания</h2>
+      <h2 className="display-2">Уведомления</h2>
       <p className="text-text-dim max-w-xl">
-        Когда банка из заказа подходит к концу, бот напишет в Telegram и предложит повторить заказ
-        в одно нажатие.
+        Три независимых переключателя — отключение одного не трогает остальные. Бот не шлёт больше
+        нескольких сообщений в день ни при каких обстоятельствах.
       </p>
       <div className="border border-border rounded-2xl divide-y divide-border">
         <label className="flex items-center justify-between gap-4 p-4 cursor-pointer">
-          <span className="font-medium">Напоминать, когда заканчивается</span>
+          <span className="font-medium">Напоминания о приёме</span>
+          <input
+            type="checkbox"
+            checked={s.intakeRemindersEnabled}
+            onChange={(e) => save({ ...s, intakeRemindersEnabled: e.target.checked })}
+            className="w-5 h-5 accent-[color:var(--accent)]"
+          />
+        </label>
+        <label className="flex items-center justify-between gap-4 p-4 cursor-pointer">
+          <span className="font-medium">Статусы заказа</span>
+          <input
+            type="checkbox"
+            checked={s.orderStatusNotificationsEnabled}
+            onChange={(e) => save({ ...s, orderStatusNotificationsEnabled: e.target.checked })}
+            className="w-5 h-5 accent-[color:var(--accent)]"
+          />
+        </label>
+        <label className="flex items-center justify-between gap-4 p-4 cursor-pointer">
+          <span className="font-medium">Банка заканчивается</span>
           <input
             type="checkbox"
             checked={s.remindersEnabled}
@@ -435,7 +457,7 @@ function ReminderSettings({
           />
         </label>
         <div className="flex items-center justify-between gap-4 p-4">
-          <span className="font-medium">За сколько дней</span>
+          <span className="font-medium">За сколько дней (банка)</span>
           <select
             value={s.remindDaysBefore}
             onChange={(e) => save({ ...s, remindDaysBefore: Number(e.target.value) })}
@@ -450,12 +472,11 @@ function ReminderSettings({
           </select>
         </div>
         <div className="flex items-center justify-between gap-4 p-4">
-          <span className="font-medium">Время</span>
+          <span className="font-medium">Время (банка и приём без слота)</span>
           <select
             value={s.remindHour}
             onChange={(e) => save({ ...s, remindHour: Number(e.target.value) })}
-            disabled={!s.remindersEnabled}
-            className="px-3 h-10 rounded-lg bg-bg-panel border border-border disabled:opacity-50"
+            className="px-3 h-10 rounded-lg bg-bg-panel border border-border"
           >
             {[8, 9, 10, 11, 12, 14, 18, 20].map((h) => (
               <option key={h} value={h}>

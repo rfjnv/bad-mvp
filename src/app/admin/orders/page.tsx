@@ -17,7 +17,7 @@ interface Order {
   items: { id: string }[];
 }
 
-const STATUSES = ["", "NEW", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"];
+const STATUSES = ["", "NEW", "CONFIRMED", "PACKED", "WITH_COURIER", "IN_TRANSIT", "DELIVERED", "CANCELLED", "RETURNED"];
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);

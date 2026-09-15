@@ -53,6 +53,7 @@ export default function AdminTelegramPage() {
       <h1 className="text-2xl font-semibold tracking-tight">{t.admin.telegram}</h1>
 
       <ShopChannel />
+      <MessageBudget />
 
       <h2 className="text-lg font-semibold tracking-tight">Напоминания покупателям</h2>
       <div className="flex items-center gap-3">
@@ -204,6 +205,61 @@ function ShopChannel() {
         </button>
         {testResult && <span className="text-sm text-text-dim">{testResult}</span>}
       </div>
+    </div>
+  );
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  ORDER_STATUS: "статус заказа",
+  DELIVERY_PROMPT: "доставка",
+  BANK_REMINDER: "банка",
+  INTAKE_REMINDER: "приём",
+};
+
+interface BudgetUser {
+  userId: string;
+  firstName: string;
+  username: string | null;
+  total: number;
+  byCategory: Record<string, number>;
+}
+
+/** Реальная картина отправок за сегодня, а не догадки — пункт 6 из обсуждения шума */
+function MessageBudget() {
+  const [data, setData] = useState<{ budget: number; users: BudgetUser[] } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/telegram/message-budget")
+      .then((r) => r.json())
+      .then(setData);
+  }, []);
+
+  return (
+    <div className="bg-bg-panel rounded-2xl p-5 flex flex-col gap-3">
+      <div className="font-semibold">Сообщения бота сегодня</div>
+      <p className="text-sm text-text-dim -mt-1">
+        Бюджет {data?.budget ?? "…"} сообщений в сутки на пользователя. Что не влезло — не копится,
+        досылается по приоритету (статус заказа → банка → приём) или не досылается вовсе.
+      </p>
+      {data && data.users.length === 0 && <p className="text-sm text-text-dim">Сегодня сообщений ещё не было.</p>}
+      {data && data.users.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {data.users.map((u) => (
+            <div key={u.userId} className="flex items-center justify-between gap-3 text-sm border-t border-border pt-2">
+              <span>
+                {u.firstName}
+                {u.username && <span className="text-text-dim"> · @{u.username}</span>}
+              </span>
+              <span className={`font-semibold ${u.total >= data.budget ? "text-red" : ""}`}>
+                {u.total} / {data.budget}
+                <span className="text-text-dim font-normal ml-2">
+                  ({Object.entries(u.byCategory).map(([c, n]) => `${CATEGORY_LABELS[c] ?? c}: ${n}`).join(", ")})
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,21 +1,40 @@
 import { prisma } from "./prisma";
 import { sendTelegramMessage, buildReminderMessage } from "./telegram";
 import { tashkentHour, tashkentDateKey } from "./reminders";
+import { canSendBotMessage, recordBotMessage } from "./botMessageBudget";
 import type { RoutineSlot } from "@prisma/client";
 
+const MERGE_WINDOW_HOURS = 3;
+
 /**
- * Ежедневное «не забудьте приём» по слотам утро/день/вечер — отдельное
- * сообщение на каждый слот, во время, которое пользователь выбрал для
- * этого слота, а не один пакет всех товаров разом в remindHour.
+ * Ежедневное «не забудьте приём». По умолчанию у нового пользователя —
+ * один пакет в remindHour ("DEFAULT") для всех позиций без слота; слоты
+ * появляются, только если человек сам назначил timeSlot хотя бы одной
+ * позиции — три рассылки по умолчанию никому не включаются.
  *
- * Позиции без слота сюда не попадают — для них поведение прежнее,
- * неавтоматическое (кнопка в /admin/telegram), как и раньше Задачи B.
+ * Соседние по времени группы (включая DEFAULT) в пределах MERGE_WINDOW_HOURS
+ * объединяются в одно сообщение — иначе утро в 8 и слот в 10 были бы двумя
+ * отдельными шумными сообщениями вместо одного.
  */
-const SLOTS: { slot: RoutineSlot; hourField: "remindHourMorning" | "remindHourAfternoon" | "remindHourEvening" }[] = [
-  { slot: "MORNING", hourField: "remindHourMorning" },
-  { slot: "AFTERNOON", hourField: "remindHourAfternoon" },
-  { slot: "EVENING", hourField: "remindHourEvening" },
-];
+interface Group {
+  key: string; // "MORNING" | "AFTERNOON" | "EVENING" | "DEFAULT"
+  hour: number;
+  items: { productId: string; name: string }[];
+}
+
+function clusterByGap(groups: Group[], gapHours: number): Group[][] {
+  const sorted = [...groups].sort((a, b) => a.hour - b.hour);
+  const clusters: Group[][] = [];
+  for (const g of sorted) {
+    const last = clusters[clusters.length - 1];
+    if (last && g.hour - last[last.length - 1].hour < gapHours) {
+      last.push(g);
+    } else {
+      clusters.push([g]);
+    }
+  }
+  return clusters;
+}
 
 export async function sendSlotReminders(now = new Date()): Promise<{ sent: number; noChannel: number }> {
   const hour = tashkentHour(now);
@@ -25,27 +44,46 @@ export async function sendSlotReminders(now = new Date()): Promise<{ sent: numbe
 
   const users = await prisma.user.findMany({
     where: {
-      remindersEnabled: true,
+      intakeRemindersEnabled: true,
       reminderChannelConnectedAt: { not: null },
-      routine: { some: { timeSlot: { not: null }, pausedAt: null } },
+      routine: { some: { pausedAt: null } },
     },
     include: {
-      routine: { where: { timeSlot: { not: null }, pausedAt: null }, include: { product: true } },
+      routine: { where: { pausedAt: null }, include: { product: true } },
     },
   });
 
   for (const user of users) {
-    for (const { slot, hourField } of SLOTS) {
-      if (user[hourField] !== hour) continue;
-      const items = user.routine.filter((r) => r.timeSlot === slot);
-      if (items.length === 0) continue;
+    if (user.routine.length === 0) continue;
 
-      const already = await prisma.slotReminderSent.findUnique({
-        where: { userId_slot_date: { userId: user.id, slot, date: dateStr } },
+    const slotGroups: Group[] = (["MORNING", "AFTERNOON", "EVENING"] as RoutineSlot[])
+      .map((slot) => ({
+        key: slot,
+        hour: { MORNING: user.remindHourMorning, AFTERNOON: user.remindHourAfternoon, EVENING: user.remindHourEvening }[slot],
+        items: user.routine.filter((r) => r.timeSlot === slot).map((r) => ({ productId: r.productId, name: r.product.name })),
+      }))
+      .filter((g) => g.items.length > 0);
+
+    const unslotted = user.routine.filter((r) => r.timeSlot === null);
+    if (unslotted.length > 0) {
+      slotGroups.push({ key: "DEFAULT", hour: user.remindHour, items: unslotted.map((r) => ({ productId: r.productId, name: r.product.name })) });
+    }
+    if (slotGroups.length === 0) continue;
+
+    for (const cluster of clusterByGap(slotGroups, MERGE_WINDOW_HOURS)) {
+      const targetHour = Math.min(...cluster.map((g) => g.hour));
+      if (hour !== targetHour) continue;
+
+      const keys = cluster.map((g) => g.key);
+      const already = await prisma.slotReminderSent.findFirst({
+        where: { userId: user.id, slot: { in: keys }, date: dateStr },
       });
-      if (already) continue;
+      if (already) continue; // весь кластер отмечается разом — одной записи достаточно
 
-      const text = buildReminderMessage(items.map((i) => i.product.name));
+      if (!(await canSendBotMessage(user.id, "INTAKE_REMINDER", now))) continue;
+
+      const items = cluster.flatMap((g) => g.items);
+      const text = buildReminderMessage(items.map((i) => i.name));
       const result = await sendTelegramMessage(user.telegramId, text);
 
       if (!result.ok) {
@@ -56,7 +94,10 @@ export async function sendSlotReminders(now = new Date()): Promise<{ sent: numbe
         continue;
       }
 
-      await prisma.slotReminderSent.create({ data: { userId: user.id, slot, date: dateStr } });
+      await prisma.slotReminderSent.createMany({
+        data: keys.map((slot) => ({ userId: user.id, slot, date: dateStr })),
+      });
+      await recordBotMessage(user.id, "INTAKE_REMINDER", now);
       sent++;
     }
   }

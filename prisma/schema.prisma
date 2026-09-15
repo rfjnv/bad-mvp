@@ -13,9 +13,26 @@ datasource db {
 enum OrderStatus {
   NEW
   CONFIRMED
+  /// Собран на складе
+  PACKED
+  /// Передан курьеру — на этом переходе есть телефон курьера, если задан
+  WITH_COURIER
+  /// В пути к покупателю
+  IN_TRANSIT
   SHIPPED
   DELIVERED
   CANCELLED
+  /// Возврат — отдельная ветка, не продолжение обычной цепочки статусов
+  RETURNED
+}
+
+/// Категория исходящего сообщения бота — для общего суточного бюджета
+/// и приоритета при его превышении (см. src/lib/botMessageBudget.ts)
+enum BotMessageCategory {
+  ORDER_STATUS
+  DELIVERY_PROMPT
+  BANK_REMINDER
+  INTAKE_REMINDER
 }
 
 enum PaymentMethod {
@@ -170,6 +187,18 @@ model Order {
   items           OrderItem[]
   /// Ставится при переходе в DELIVERED; от неё считается, когда закончится банка
   deliveredAt     DateTime?
+  /// Телефон курьера — показывается в уведомлении «Передан курьеру», если задан
+  courierPhone    String?
+  /// Причина отмены — показывается в уведомлении «Отменён»
+  cancelReason    String?
+  /// Слияние уведомлений о статусе в пределах часа (Задача C, пункт 4):
+  /// lastNotifiedStatus/At — что и когда реально ушло клиенту последний раз;
+  /// pendingNotifyStatus — более новый статус, ещё не отправленный, потому
+  /// что не прошло часа с прошлой отправки. Часовой cron досылает его одним
+  /// сообщением, как только час пройдёт.
+  lastNotifiedStatus  OrderStatus?
+  lastNotifiedAt      DateTime?
+  pendingNotifyStatus OrderStatus?
   /// Случайный токен для страницы «Повторить заказ» из напоминания — без пароля
   repeatToken     String?       @unique
   /// Если заказ сделан со страницы повтора — ссылка на исходный, для конверсии
@@ -357,8 +386,12 @@ model User {
   firstName        String
   username         String?
   photoUrl         String?
-  /// Настройки напоминаний «банка заканчивается»
-  remindersEnabled Boolean       @default(true)
+  /// Три независимых переключателя — отключение одного не трогает
+  /// остальные. remindersEnabled исторически называется так, но означает
+  /// именно «банка заканчивается» — единственное, для чего он и служил.
+  remindersEnabled               Boolean @default(true)
+  intakeRemindersEnabled         Boolean @default(true)
+  orderStatusNotificationsEnabled Boolean @default(true)
   remindDaysBefore Int           @default(7)
   /// Час отправки по Ташкенту, 0–23 — для позиций «Моего приёма» без слота
   /// (обратная совместимость) и для напоминания «банка заканчивается»
@@ -385,6 +418,7 @@ model User {
   plansReceived    Plan[]        @relation("PlanRecipient")
   slotRemindersSent      SlotReminderSent[]
   compatibilityDismissals CompatibilityDismissal[]
+  botMessageLogs          BotMessageLog[]
 }
 
 /// Товар в списке приёма пользователя. Серверная замена localStorage —
@@ -430,14 +464,30 @@ model IntakeLog {
 /// Разовая рассылка «не забудьте приём» по слоту за день — идемпотентность
 /// вместо угадывания «уже слал или нет» по времени последнего запуска cron.
 model SlotReminderSent {
-  id     String      @id @default(cuid())
-  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String   @id @default(cuid())
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
-  slot   RoutineSlot
+  /// "MORNING" / "AFTERNOON" / "EVENING" или "DEFAULT" — для позиций без
+  /// слота, объединённых в одно ежедневное напоминание в remindHour.
+  /// Строка, а не RoutineSlot: DEFAULT не должно быть значением, которое
+  /// можно назначить самому RoutineItem.timeSlot — это разные вещи.
+  slot   String
   date   String
-  sentAt DateTime    @default(now())
+  sentAt DateTime @default(now())
 
   @@unique([userId, slot, date])
+}
+
+/// Суточный бюджет сообщений бота на пользователя — см.
+/// src/lib/botMessageBudget.ts. Считаем факт отправки, не намерение.
+model BotMessageLog {
+  id       String             @id @default(cuid())
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  category BotMessageCategory
+  sentAt   DateTime           @default(now())
+
+  @@index([userId, sentAt])
 }
 
 /// «Понятно, не показывать» на предупреждении о совместимости в «Моём

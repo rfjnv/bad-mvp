@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { orderStatusSchema } from "@/lib/validation";
 import { computeDuration, expectedFinishDate } from "@/lib/duration";
 import { sendPendingDeliveryPrompts } from "@/lib/deliveryPrompts";
+import { notifyOrderStatusChange } from "@/lib/orderStatusNotify";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -21,15 +22,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!parsed.success) {
     return NextResponse.json({ error: "Некорректный статус" }, { status: 400 });
   }
-  const status = parsed.data.status;
+  const { status, courierPhone, cancelReason, notify } = parsed.data;
 
   try {
-    const { order, becameDelivered } = await prisma.$transaction(async (tx) => {
+    const { order, becameDelivered, statusChanged } = await prisma.$transaction(async (tx) => {
       const current = await tx.order.findUnique({
         where: { id },
         include: { items: { include: { product: true } } },
       });
       if (!current) throw new NotFound();
+
+      const changed = current.status !== status;
 
       // Дата доставки ставится один раз — при первом переходе в DELIVERED.
       // От неё пересчитываем, когда закончится каждая позиция: при заказе
@@ -52,14 +55,27 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         });
       }
 
-      const updated = await tx.order.update({ where: { id }, data: { status, deliveredAt } });
-      return { order: updated, becameDelivered: becomesDelivered };
+      const updated = await tx.order.update({
+        where: { id },
+        data: {
+          status,
+          deliveredAt,
+          ...(courierPhone !== undefined ? { courierPhone } : {}),
+          ...(cancelReason !== undefined ? { cancelReason } : {}),
+        },
+      });
+      return { order: updated, becameDelivered: becomesDelivered, statusChanged: changed };
     });
 
     if (becameDelivered) {
       // Не ждём Telegram — то же правило, что и у уведомлений магазину.
       // Если канал ещё не подключён или сеть моргнёт, часовой cron дошлёт.
       void sendPendingDeliveryPrompts();
+    }
+    if (statusChanged) {
+      // Слияние с предыдущим переходом (если < часа) и суточный бюджет —
+      // внутри notifyOrderStatusChange, не ждём здесь ответа Telegram.
+      void notifyOrderStatusChange(id, status, notify);
     }
 
     return NextResponse.json(order);

@@ -208,9 +208,13 @@ export const t = {
     topProducts: "Топ-5 товаров по продажам",
     statusNew: "Новый",
     statusConfirmed: "Подтверждён",
+    statusPacked: "Собран",
+    statusWithCourier: "Передан курьеру",
+    statusInTransit: "В пути",
     statusShipped: "Отправлен",
     statusDelivered: "Доставлен",
     statusCancelled: "Отменён",
+    statusReturned: "Возврат",
     payPending: "Ожидает",
     payPaid: "Оплачен",
     payFailed: "Ошибка оплаты",
@@ -221,9 +225,13 @@ export const t = {
 export const CATEGORY_ORDER_STATUS_LABELS: Record<string, string> = {
   NEW: t.admin.statusNew,
   CONFIRMED: t.admin.statusConfirmed,
+  PACKED: t.admin.statusPacked,
+  WITH_COURIER: t.admin.statusWithCourier,
+  IN_TRANSIT: t.admin.statusInTransit,
   SHIPPED: t.admin.statusShipped,
   DELIVERED: t.admin.statusDelivered,
   CANCELLED: t.admin.statusCancelled,
+  RETURNED: t.admin.statusReturned,
 };
 
 export const PAYMENT_STATUS_LABELS: Record<string, string> = {
