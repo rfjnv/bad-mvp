@@ -1,7 +1,7 @@
 import { prisma } from "./prisma";
-import { buildFinishReminder, sendTelegramMessage, getTelegramConfig } from "./telegram";
+import { buildFinishReminderList, sendTelegramMessage, getTelegramConfig, type InlineButton } from "./telegram";
 import { computeRemaining, type IntakeMark } from "./routineStats";
-import { canSendBotMessage, recordBotMessage } from "./botMessageBudget";
+import { canSendBankReminder, recordBotMessage } from "./botMessageBudget";
 
 /**
  * Напоминания «банка заканчивается».
@@ -115,6 +115,14 @@ export async function runReminders(siteUrl: string, now = new Date()): Promise<R
 
   const { sandbox } = getTelegramConfig();
 
+  // Сперва решаем, какие reminder'ы вообще готовы уйти прямо сейчас
+  // (канал, час, эффективная дата) — без отправки. Группируем по
+  // пользователю: несколько заканчивающихся позиций уходят одним
+  // сообщением, не больше BANK_REMINDER_DAILY_LIMIT в сутки на человека.
+  type DueReminder = (typeof due)[number];
+  type ReadyUser = NonNullable<DueReminder["orderItem"]["order"]["user"]>;
+  const readyByUser = new Map<string, { user: ReadyUser; reminders: DueReminder[] }>();
+
   for (const r of due) {
     const order = r.orderItem.order;
     const user = order.user;
@@ -150,50 +158,63 @@ export async function runReminders(siteUrl: string, now = new Date()): Promise<R
       }
     }
 
-    if (effectiveDueAt > now) {
+    if (effectiveDueAt > now || tashkentHour(now) < user.remindHour) {
       result.waiting++;
       continue;
     }
 
-    if (tashkentHour(now) < user.remindHour) {
-      result.waiting++;
+    const entry = readyByUser.get(user.id) ?? { user, reminders: [] as DueReminder[] };
+    entry.reminders.push(r);
+    readyByUser.set(user.id, entry);
+  }
+
+  for (const { user, reminders } of readyByUser.values()) {
+    // Лимит на категорию, не общий бюджет — не влезло сегодня, всё
+    // остаётся PENDING и уйдёт завтра одним сообщением, как и должно
+    if (!(await canSendBankReminder(user.id, now))) {
+      result.waiting += reminders.length;
       continue;
     }
 
-    // Суточный бюджет сообщений — не влезло сегодня, попробуем завтра,
-    // не копим и не досылаем позже в тот же день
-    if (!(await canSendBotMessage(user.id, "BANK_REMINDER", now))) {
-      result.waiting++;
-      continue;
-    }
-
-    const text = buildFinishReminder(r.orderItem.product.name, r.orderItem.expectedFinishAt ?? r.dueAt);
-    const buttons = order.repeatToken
-      ? [{ text: "Повторить заказ", url: `${siteUrl}/repeat/${order.repeatToken}` }]
-      : undefined;
+    const finishItems = reminders.map((r) => ({
+      productName: r.orderItem.product.name,
+      finishAt: r.orderItem.expectedFinishAt ?? r.dueAt,
+    }));
+    const text = buildFinishReminderList(finishItems);
+    // Кнопки — по уникальным заказам среди позиций сообщения, не больше трёх
+    const buttons: InlineButton[] = [
+      ...new Map(
+        reminders
+          .filter((r) => r.orderItem.order.repeatToken)
+          .map((r) => [r.orderItem.order.id, { text: `Повторить ${r.orderItem.order.orderNumber}`, url: `${siteUrl}/repeat/${r.orderItem.order.repeatToken}` }])
+      ).values(),
+    ].slice(0, 3);
 
     if (sandbox) {
-      console.log(`[telegram → ${user.telegramId}, песочница]\n${text}\n→ ${buttons?.[0]?.url ?? ""}`);
+      console.log(`[telegram → ${user.telegramId}, песочница]\n${text}`);
     }
-    const send = await sendTelegramMessage(user.telegramId, text, buttons);
+    const send = await sendTelegramMessage(user.telegramId, text, buttons.length ? buttons : undefined);
     if (!send.ok) {
-      result.errors.push(`${order.orderNumber}: ${send.error}`);
+      result.errors.push(`${user.telegramId}: ${send.error}`);
       if (send.errorCode === 403) {
         // Пользователь заблокировал бота или отозвал доступ — канал разорван,
         // ретраить бессмысленно, пока не подключит заново
         await prisma.user.update({ where: { id: user.id }, data: { reminderChannelConnectedAt: null } });
-        await prisma.reminder.update({ where: { id: r.id }, data: { status: "NO_CHANNEL" } });
-        result.noChannel++;
+        await prisma.reminder.updateMany({
+          where: { id: { in: reminders.map((r) => r.id) } },
+          data: { status: "NO_CHANNEL" },
+        });
+        result.noChannel += reminders.length;
       }
-      continue; // иначе остаётся PENDING — попробуем в следующий запуск
+      continue; // иначе остаются PENDING — попробуем в следующий запуск
     }
 
-    await prisma.reminder.update({
-      where: { id: r.id },
+    await prisma.reminder.updateMany({
+      where: { id: { in: reminders.map((r) => r.id) } },
       data: { status: "SENT", sentAt: now },
     });
     await recordBotMessage(user.id, "BANK_REMINDER", now);
-    result.sent++;
+    result.sent += reminders.length;
   }
 
   return result;

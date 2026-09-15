@@ -1,7 +1,7 @@
 import { prisma } from "./prisma";
 import { sendTelegramMessage, buildReminderMessage } from "./telegram";
 import { tashkentHour, tashkentDateKey } from "./reminders";
-import { canSendBotMessage, recordBotMessage } from "./botMessageBudget";
+import { canSendIntakeReminder, recordBotMessage } from "./botMessageBudget";
 import type { RoutineSlot } from "@prisma/client";
 
 const MERGE_WINDOW_HOURS = 3;
@@ -80,7 +80,10 @@ export async function sendSlotReminders(now = new Date()): Promise<{ sent: numbe
       });
       if (already) continue; // весь кластер отмечается разом — одной записи достаточно
 
-      if (!(await canSendBotMessage(user.id, "INTAKE_REMINDER", now))) continue;
+      // Лимит категории (INTAKE_REMINDER_DAILY_LIMIT=2) — максимум одно
+      // слияние сверх основного пакета, это и есть единственная категория,
+      // где реально копится шум
+      if (!(await canSendIntakeReminder(user.id, now))) continue;
 
       const items = cluster.flatMap((g) => g.items);
       const text = buildReminderMessage(items.map((i) => i.name));

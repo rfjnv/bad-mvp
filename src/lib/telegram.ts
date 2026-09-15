@@ -208,10 +208,29 @@ export function buildReminderMessage(items: string[]): string {
   return `Не забудьте сегодняшний приём:\n${list}\n\nОтметить как принято можно в разделе «Мой приём» на сайте.`;
 }
 
+function formatFinishDate(finishAt: Date): string {
+  return finishAt.toLocaleDateString("ru-RU", { day: "numeric", month: "long", timeZone: "Asia/Tashkent" });
+}
+
 /** «NOW Магний цитрат заканчивается около 23 декабря. Повторить заказ?» */
 export function buildFinishReminder(productName: string, finishAt: Date): string {
-  const when = finishAt.toLocaleDateString("ru-RU", { day: "numeric", month: "long", timeZone: "Asia/Tashkent" });
-  return `${productName} заканчивается около ${when}. Повторить заказ?`;
+  return `${productName} заканчивается около ${formatFinishDate(finishAt)}. Повторить заказ?`;
+}
+
+export interface FinishReminderItem {
+  productName: string;
+  finishAt: Date;
+}
+
+/**
+ * Несколько заканчивающихся позиций — одно сообщение со списком, а не
+ * по одному на каждую (не больше BANK_REMINDER_DAILY_LIMIT в сутки,
+ * см. src/lib/botMessageBudget.ts).
+ */
+export function buildFinishReminderList(items: FinishReminderItem[]): string {
+  if (items.length === 1) return buildFinishReminder(items[0].productName, items[0].finishAt);
+  const lines = items.map((i) => `• ${i.productName} — около ${formatFinishDate(i.finishAt)}`);
+  return ["Скоро закончатся:", ...lines, "", "Повторить заказ можно кнопкой ниже."].join("\n");
 }
 
 // ── Задача A: что происходит после доставки ──────────────────────────

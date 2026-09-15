@@ -225,8 +225,14 @@ interface BudgetUser {
 }
 
 /** Реальная картина отправок за сегодня, а не догадки — пункт 6 из обсуждения шума */
+interface BudgetData {
+  limits: Record<string, number | null>;
+  users: BudgetUser[];
+}
+
+/** Квоты по категориям, не общий бюджет — см. обсуждение в чате, почему общий пул не работает */
 function MessageBudget() {
-  const [data, setData] = useState<{ budget: number; users: BudgetUser[] } | null>(null);
+  const [data, setData] = useState<BudgetData | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/telegram/message-budget")
@@ -238,26 +244,32 @@ function MessageBudget() {
     <div className="bg-bg-panel rounded-2xl p-5 flex flex-col gap-3">
       <div className="font-semibold">Сообщения бота сегодня</div>
       <p className="text-sm text-text-dim -mt-1">
-        Бюджет {data?.budget ?? "…"} сообщений в сутки на пользователя. Что не влезло — не копится,
-        досылается по приоритету (статус заказа → банка → приём) или не досылается вовсе.
+        Статус заказа и вопрос после доставки — без лимита (ограничены слиянием и идемпотентностью).
+        Банка — не больше {data?.limits.BANK_REMINDER ?? "…"} в сутки. Приём — не больше{" "}
+        {data?.limits.INTAKE_REMINDER ?? "…"} в сутки.
       </p>
       {data && data.users.length === 0 && <p className="text-sm text-text-dim">Сегодня сообщений ещё не было.</p>}
       {data && data.users.length > 0 && (
         <div className="flex flex-col gap-2">
-          {data.users.map((u) => (
-            <div key={u.userId} className="flex items-center justify-between gap-3 text-sm border-t border-border pt-2">
-              <span>
-                {u.firstName}
-                {u.username && <span className="text-text-dim"> · @{u.username}</span>}
-              </span>
-              <span className={`font-semibold ${u.total >= data.budget ? "text-red" : ""}`}>
-                {u.total} / {data.budget}
-                <span className="text-text-dim font-normal ml-2">
-                  ({Object.entries(u.byCategory).map(([c, n]) => `${CATEGORY_LABELS[c] ?? c}: ${n}`).join(", ")})
+          {data.users.map((u) => {
+            const overLimit =
+              (data.limits.BANK_REMINDER != null && (u.byCategory.BANK_REMINDER ?? 0) > data.limits.BANK_REMINDER) ||
+              (data.limits.INTAKE_REMINDER != null && (u.byCategory.INTAKE_REMINDER ?? 0) > data.limits.INTAKE_REMINDER);
+            return (
+              <div key={u.userId} className="flex items-center justify-between gap-3 text-sm border-t border-border pt-2">
+                <span>
+                  {u.firstName}
+                  {u.username && <span className="text-text-dim"> · @{u.username}</span>}
                 </span>
-              </span>
-            </div>
-          ))}
+                <span className={`font-semibold ${overLimit ? "text-red" : ""}`}>
+                  {u.total} всего
+                  <span className="text-text-dim font-normal ml-2">
+                    ({Object.entries(u.byCategory).map(([c, n]) => `${CATEGORY_LABELS[c] ?? c}: ${n}`).join(", ")})
+                  </span>
+                </span>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

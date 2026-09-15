@@ -2,21 +2,21 @@ import { prisma } from "./prisma";
 import type { BotMessageCategory } from "@prisma/client";
 
 /**
- * Суточный бюджет проактивных сообщений бота на пользователя. Не считает
- * прямые ответы на действия человека (нажал кнопку, написал /start) —
- * это не шум, это ожидаемый ответ на конкретное действие.
+ * НЕ общий пул с приоритетом — квоты по категориям. Общий пул не работает,
+ * потому что сообщения дня не известны заранее: напоминания о приёме
+ * уходят утром по расписанию, статусы заказа — днём по событию. Если бы
+ * утренний пакет съедал общий бюджет, к моменту «курьер выехал» слать
+ * было бы уже нечего — а это самое важное сообщение из всех.
  *
- * Число в конфиг, не в код — вот оно, одна константа.
+ * Числа — конфиг, не код:
+ *  - статусы заказа и вопрос после доставки — вне лимита совсем
+ *    (ограничены слиянием и идемпотентностью, не количеством);
+ *  - банка — не больше BANK_REMINDER_DAILY_LIMIT в сутки (несколько
+ *    заканчивающихся позиций сливаются в одно сообщение со списком);
+ *  - приём — не больше INTAKE_REMINDER_DAILY_LIMIT в сутки.
  */
-export const DAILY_MESSAGE_BUDGET = 4;
-
-/** Меньше число — выше приоритет при исчерпании бюджета */
-const PRIORITY: Record<BotMessageCategory, number> = {
-  ORDER_STATUS: 1,
-  DELIVERY_PROMPT: 2,
-  BANK_REMINDER: 3,
-  INTAKE_REMINDER: 4,
-};
+export const BANK_REMINDER_DAILY_LIMIT = 1;
+export const INTAKE_REMINDER_DAILY_LIMIT = 2;
 
 const TASHKENT_OFFSET_HOURS = 5;
 
@@ -26,26 +26,17 @@ function tashkentStartOfDay(now: Date): Date {
   return new Date(t.getTime() - TASHKENT_OFFSET_HOURS * 3_600_000);
 }
 
-/**
- * Можно ли отправить сообщение этой категории сейчас, не превышая бюджет.
- * Что не влезло — не копится и не досылается позже (вызывающий код просто
- * не отправляет, ничего не планирует на потом).
- *
- * Ниже бюджета — да, всегда. На бюджете или сверху — да, только если эта
- * категория приоритетнее любой уже отправленной сегодня: статус заказа
- * почти всегда пройдёт, напоминание о приёме — первое, что режется.
- */
-export async function canSendBotMessage(userId: string, category: BotMessageCategory, now = new Date()): Promise<boolean> {
+async function countSentToday(userId: string, category: BotMessageCategory, now: Date): Promise<number> {
   const since = tashkentStartOfDay(now);
-  const sentToday = await prisma.botMessageLog.findMany({
-    where: { userId, sentAt: { gte: since } },
-    select: { category: true },
-  });
+  return prisma.botMessageLog.count({ where: { userId, category, sentAt: { gte: since } } });
+}
 
-  if (sentToday.length < DAILY_MESSAGE_BUDGET) return true;
+export async function canSendBankReminder(userId: string, now = new Date()): Promise<boolean> {
+  return (await countSentToday(userId, "BANK_REMINDER", now)) < BANK_REMINDER_DAILY_LIMIT;
+}
 
-  const lowestSentPriority = Math.max(...sentToday.map((m) => PRIORITY[m.category]));
-  return PRIORITY[category] < lowestSentPriority;
+export async function canSendIntakeReminder(userId: string, now = new Date()): Promise<boolean> {
+  return (await countSentToday(userId, "INTAKE_REMINDER", now)) < INTAKE_REMINDER_DAILY_LIMIT;
 }
 
 export async function recordBotMessage(userId: string, category: BotMessageCategory, now = new Date()): Promise<void> {
