@@ -42,6 +42,7 @@ export interface ProductFormValues {
   dailyDose: number | null;
   form: string;
   formNote: string;
+  contraindications: string;
   isActive: boolean;
 }
 
@@ -74,6 +75,7 @@ const EMPTY: ProductFormValues = {
   dailyDose: null,
   form: "",
   formNote: "",
+  contraindications: "",
   isActive: true,
 };
 
@@ -151,6 +153,7 @@ export default function ProductForm({
       dailyDose: values.dailyDose || null,
       form: values.form || null,
       formNote: values.formNote || null,
+      contraindications: values.contraindications || null,
     };
 
     const res = await fetch(values.id ? `/api/admin/products/${values.id}` : "/api/admin/products", {
@@ -433,6 +436,25 @@ export default function ProductForm({
         <p className="text-xs text-text-dim mt-2">
           Заполните, если в категории есть несколько форм одного вещества (магний, цинк, железо,
           йод, коллаген) — иначе разница в цене за мг выглядит непонятной.
+        </p>
+      </div>
+
+      <div className="border-t border-border pt-4">
+        <div className="text-sm font-semibold mb-3">
+          Кому не подходит <span className="text-text-dim font-normal">(необязательно)</span>
+        </div>
+        <Field label="Ограничение">
+          <input
+            value={values.contraindications}
+            onChange={(e) => set("contraindications", e.target.value)}
+            placeholder="При приёме антикоагулянтов — только по назначению врача"
+            maxLength={500}
+            className="w-full px-3 py-2 rounded-lg bg-bg-panel-2 border border-border"
+          />
+        </Field>
+        <p className="text-xs text-text-dim mt-2">
+          Только по этикетке или вкладышу производителя — не вывод из состава. Если ограничение
+          не заявлено производителем, оставьте пустым.
         </p>
       </div>
 

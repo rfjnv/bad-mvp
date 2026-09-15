@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { USER_COOKIE, verifyUserToken } from "@/lib/session";
 import { getTelegramConfig } from "@/lib/telegram";
 import { computeDuration } from "@/lib/duration";
+import { findInteractions } from "@/lib/compatibility";
 import PlanClient from "./PlanClient";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ export default async function PlanPage({ params }: { params: Promise<{ token: st
 
   const plan = await prisma.plan.findUnique({
     where: { token },
-    include: { order: { include: { items: { include: { product: true } } } } },
+    include: { order: { include: { items: { include: { product: { include: { category: true } } } } } } },
   });
   if (!plan) notFound();
 
@@ -37,6 +38,16 @@ export default async function PlanPage({ params }: { params: Promise<{ token: st
     durationDays: computeDuration(i.product)?.days ?? null,
   }));
 
+  const compatibility = findInteractions(
+    plan.order.items.map((i) => ({
+      categorySlug: i.product.category.slug,
+      composition: i.product.composition,
+      activeSubstance: i.product.activeSubstance,
+      activeAmount: i.product.activeAmount,
+      activeUnit: i.product.activeUnit,
+    }))
+  ).map((m) => m.message);
+
   return (
     <PlanClient
       token={token}
@@ -45,6 +56,7 @@ export default async function PlanPage({ params }: { params: Promise<{ token: st
       claimed={plan.claimedAt !== null}
       isOwner={isOwner}
       botUsername={botUsername || null}
+      compatibilityNotes={compatibility}
     />
   );
 }

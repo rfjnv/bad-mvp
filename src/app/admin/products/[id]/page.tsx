@@ -51,6 +51,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           dailyDose: product.dailyDose,
           form: product.form ?? "",
           formNote: product.formNote ?? "",
+          contraindications: product.contraindications ?? "",
           isActive: product.isActive,
         }}
       />

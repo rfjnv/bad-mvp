@@ -165,6 +165,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             stock={product.stock}
             categorySlug={product.category.slug}
             price={product.price}
+            composition={product.composition}
+            activeSubstance={product.activeSubstance}
+            activeAmount={product.activeAmount}
+            activeUnit={product.activeUnit}
           />
 
           <AddToTrackerButton
@@ -188,6 +192,16 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </div>
             <div className="text-text-dim">{product.description}</div>
           </div>
+
+          {product.contraindications && (
+            <div className="bg-red-bg text-red rounded-2xl p-4 text-sm flex items-start gap-2.5">
+              <span className="shrink-0 mt-0.5">⚠</span>
+              <span>
+                <span className="font-semibold">Кому не подходит: </span>
+                {product.contraindications}
+              </span>
+            </div>
+          )}
 
           <DocumentsSection
             items={[

@@ -20,8 +20,14 @@ export default async function BundlePage({ params }: { params: Promise<{ slug: s
 
   const normalPrice = bundle.items.reduce((sum, i) => sum + i.product.price, 0);
   const bundlePrice = Math.round(normalPrice * (1 - bundle.discountPct / 100));
-  const categorySlugs = bundle.items.map((i) => i.product.category.slug);
-  const synergies = findInteractions(categorySlugs).filter((m) => m.type === "synergy");
+  const compatibilityItems = bundle.items.map((i) => ({
+    categorySlug: i.product.category.slug,
+    composition: i.product.composition,
+    activeSubstance: i.product.activeSubstance,
+    activeAmount: i.product.activeAmount,
+    activeUnit: i.product.activeUnit,
+  }));
+  const synergies = findInteractions(compatibilityItems).filter((m) => m.type === "synergy");
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex flex-col gap-8">

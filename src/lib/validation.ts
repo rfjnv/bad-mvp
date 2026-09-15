@@ -75,6 +75,7 @@ export const productSchema = z.object({
   dailyDose: z.number().positive().max(100).nullable().optional(),
   form: z.string().trim().max(60).nullable().optional(),
   formNote: z.string().trim().max(300).nullable().optional(),
+  contraindications: z.string().trim().max(500).nullable().optional(),
   isActive: z.boolean().default(true),
 });
 export type ProductInput = z.infer<typeof productSchema>;

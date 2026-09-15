@@ -125,6 +125,11 @@ model Product {
   form                    String?
   /// Одна строка: почему эта форма дороже/дешевле, мягче/жёстче и т.п.
   formNote                String?
+  /// «Кому не подходит» — только по этикетке/вкладышу производителя, не
+  /// вывод из состава. Пусто, если ограничение не заявлено производителем.
+  /// Это свойство товара, а не правило совместимости — не участвует
+  /// в src/lib/compatibility.ts.
+  contraindications       String?
   isActive                Boolean       @default(true)
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt

@@ -27,6 +27,7 @@ export default function PlanClient({
   claimed: initialClaimed,
   isOwner,
   botUsername,
+  compatibilityNotes,
 }: {
   token: string;
   items: PlanItem[];
@@ -34,6 +35,7 @@ export default function PlanClient({
   claimed: boolean;
   isOwner: boolean;
   botUsername: string | null;
+  compatibilityNotes: string[];
 }) {
   const router = useRouter();
   const [comment, setComment] = useState(initialComment ?? "");
@@ -125,6 +127,21 @@ export default function PlanClient({
           </li>
         ))}
       </ul>
+
+      {compatibilityNotes.length > 0 && (
+        <div className="flex flex-col gap-2 bg-bg-panel rounded-xl p-4">
+          <div className="text-sm font-semibold">Как удобнее принимать</div>
+          {compatibilityNotes.map((note) => (
+            <p key={note} className="text-sm text-text-dim">
+              {note}
+            </p>
+          ))}
+          <p className="text-xs text-text-dim border-t border-border pt-2 mt-1">
+            Это не медицинская рекомендация. При хронических заболеваниях или приёме лекарств
+            посоветуйтесь с врачом.
+          </p>
+        </div>
+      )}
 
       {isOwner ? (
         <div className="flex flex-col gap-2">

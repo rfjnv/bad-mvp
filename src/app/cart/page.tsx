@@ -31,6 +31,10 @@ interface CheckedLine {
     price: number;
     stock: number;
     imageUrl: string;
+    composition: string;
+    activeSubstance: string | null;
+    activeAmount: number | null;
+    activeUnit: string | null;
     category: { slug: string; name: string };
   } | null;
 }
@@ -69,10 +73,20 @@ export default function CartPage() {
   }, []);
 
   const subtotal = lines.reduce((sum, l) => sum + (l.product ? l.product.price * l.quantity : 0), 0);
-  const categorySlugs = lines
-    .map((l) => l.product?.category.slug)
-    .filter((s): s is string => Boolean(s));
-  const interactions = findInteractions(categorySlugs);
+  const compatibilityItems = lines.flatMap((l) =>
+    l.product
+      ? [
+          {
+            categorySlug: l.product.category.slug,
+            composition: l.product.composition,
+            activeSubstance: l.product.activeSubstance,
+            activeAmount: l.product.activeAmount,
+            activeUnit: l.product.activeUnit,
+          },
+        ]
+      : []
+  );
+  const interactions = findInteractions(compatibilityItems);
 
   const bundleValid = activeBundle
     ? isBundleValid(

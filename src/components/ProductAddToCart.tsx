@@ -6,18 +6,26 @@ import { track } from "@/lib/track";
 import { t } from "@/lib/i18n";
 import { formatSum } from "@/lib/format";
 import StickyBar from "@/components/StickyBar";
-import { findInteractionsForCategory, type InteractionMatch } from "@/lib/compatibility";
+import { findInteractionsForCategory, type CompatibilityItem, type InteractionMatch } from "@/lib/compatibility";
 
 export default function ProductAddToCart({
   slug,
   stock,
   categorySlug,
   price,
+  composition,
+  activeSubstance,
+  activeAmount,
+  activeUnit,
 }: {
   slug: string;
   stock: number;
   categorySlug: string;
   price: number;
+  composition: string;
+  activeSubstance: string | null;
+  activeAmount: number | null;
+  activeUnit: string | null;
 }) {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -28,8 +36,11 @@ export default function ProductAddToCart({
 
     async function check() {
       const cart = getCart().filter((l) => l.slug !== slug);
+      const selfOnly = [{ categorySlug, composition, activeSubstance, activeAmount, activeUnit }];
       if (cart.length === 0) {
-        setMatches([]);
+        // Пустая корзина не значит «нечего проверять» — правило про высокую
+        // дозу цинка касается самого товара, а не сочетания с другим
+        setMatches(findInteractionsForCategory(categorySlug, selfOnly));
         return;
       }
       const res = await fetch("/api/cart/check", {
@@ -39,10 +50,31 @@ export default function ProductAddToCart({
       });
       const data = await res.json();
       if (cancelled) return;
-      const categories = (data.lines as { product: { category: { slug: string } } | null }[])
-        .map((l) => l.product?.category.slug)
-        .filter((s): s is string => Boolean(s));
-      setMatches(findInteractionsForCategory(categorySlug, categories));
+      type Line = {
+        product: {
+          category: { slug: string };
+          composition: string;
+          activeSubstance: string | null;
+          activeAmount: number | null;
+          activeUnit: string | null;
+        } | null;
+      };
+      const cartItems: CompatibilityItem[] = (data.lines as Line[]).flatMap((l) =>
+        l.product
+          ? [
+              {
+                categorySlug: l.product.category.slug,
+                composition: l.product.composition,
+                activeSubstance: l.product.activeSubstance,
+                activeAmount: l.product.activeAmount,
+                activeUnit: l.product.activeUnit,
+              },
+            ]
+          : []
+      );
+      // Товар на странице ещё не в корзине — добавляем его в проверку
+      // отдельно, иначе правило «цинк 40 мг и выше» не увидит его самого
+      setMatches(findInteractionsForCategory(categorySlug, [...selfOnly, ...cartItems]));
     }
 
     check();
@@ -51,7 +83,7 @@ export default function ProductAddToCart({
       cancelled = true;
       window.removeEventListener(CART_CHANGED_EVENT, check);
     };
-  }, [slug, categorySlug]);
+  }, [slug, categorySlug, composition, activeSubstance, activeAmount, activeUnit]);
 
   function add() {
     addToCart(slug, qty, stock);

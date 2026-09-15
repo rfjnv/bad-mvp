@@ -33,6 +33,10 @@ export async function POST(req: NextRequest) {
       stock: true,
       imageUrl: true,
       isActive: true,
+      composition: true,
+      activeSubstance: true,
+      activeAmount: true,
+      activeUnit: true,
       category: { select: { slug: true, name: true } },
     },
   });
