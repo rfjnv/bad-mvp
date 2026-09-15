@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runReminders } from "@/lib/reminders";
 import { sendPendingDeliveryPrompts, sendDeliveryPromptFollowUps } from "@/lib/deliveryPrompts";
+import { sendSlotReminders } from "@/lib/routineSlotReminders";
 
 /**
  * Ежедневный запуск напоминаний. На бесплатном Render планировщика нет,
@@ -22,7 +23,8 @@ async function handle(req: NextRequest) {
   const result = await runReminders(siteUrl);
   const deliveryPrompts = await sendPendingDeliveryPrompts();
   const deliveryPromptFollowUps = await sendDeliveryPromptFollowUps();
-  return NextResponse.json({ ...result, deliveryPrompts, deliveryPromptFollowUps });
+  const slotReminders = await sendSlotReminders();
+  return NextResponse.json({ ...result, deliveryPrompts, deliveryPromptFollowUps, slotReminders });
 }
 
 export const POST = handle;

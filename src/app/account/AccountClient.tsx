@@ -85,6 +85,9 @@ export default function AccountClient({ botUsername }: { botUsername: string | n
           remindersEnabled: user.remindersEnabled,
           remindDaysBefore: user.remindDaysBefore,
           remindHour: user.remindHour,
+          remindHourMorning: user.remindHourMorning,
+          remindHourAfternoon: user.remindHourAfternoon,
+          remindHourEvening: user.remindHourEvening,
         }}
       />
     </div>
@@ -390,7 +393,14 @@ function OrdersSection() {
 function ReminderSettings({
   initial,
 }: {
-  initial: { remindersEnabled: boolean; remindDaysBefore: number; remindHour: number };
+  initial: {
+    remindersEnabled: boolean;
+    remindDaysBefore: number;
+    remindHour: number;
+    remindHourMorning: number;
+    remindHourAfternoon: number;
+    remindHourEvening: number;
+  };
 }) {
   const [s, setS] = useState(initial);
   const [saved, setSaved] = useState(false);
@@ -455,6 +465,37 @@ function ReminderSettings({
           </select>
         </div>
       </div>
+
+      <h3 className="text-sm font-semibold text-text-dim mt-2">Напоминания о приёме по слотам</h3>
+      <p className="text-xs text-text-dim -mt-2">
+        Время, в которое приходит напоминание «Мой приём» — отдельно для товаров в каждом слоте
+        (утро/день/вечер) в разделе «Мой приём».
+      </p>
+      <div className="border border-border rounded-2xl divide-y divide-border">
+        {(
+          [
+            ["remindHourMorning", "Утро"],
+            ["remindHourAfternoon", "День"],
+            ["remindHourEvening", "Вечер"],
+          ] as const
+        ).map(([field, label]) => (
+          <div key={field} className="flex items-center justify-between gap-4 p-4">
+            <span className="font-medium">{label}</span>
+            <select
+              value={s[field]}
+              onChange={(e) => save({ ...s, [field]: Number(e.target.value) })}
+              className="px-3 h-10 rounded-lg bg-bg-panel border border-border"
+            >
+              {Array.from({ length: 24 }, (_, h) => h).map((h) => (
+                <option key={h} value={h}>
+                  {String(h).padStart(2, "0")}:00
+                </option>
+              ))}
+            </select>
+          </div>
+        ))}
+      </div>
+
       {saved && <p className="text-sm text-green">Сохранено</p>}
     </section>
   );

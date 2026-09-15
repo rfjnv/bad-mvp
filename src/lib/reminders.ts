@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
 import { buildFinishReminder, sendTelegramMessage, getTelegramConfig } from "./telegram";
+import { computeRemaining, type IntakeMark } from "./routineStats";
 
 /**
  * Напоминания «банка заканчивается».
@@ -22,6 +23,12 @@ const TASHKENT_OFFSET_HOURS = 5;
 
 export function tashkentHour(now: Date): number {
   return (now.getUTCHours() + TASHKENT_OFFSET_HOURS) % 24;
+}
+
+/** YYYY-MM-DD по Ташкенту — для дедупликации разовых по дню рассылок */
+export function tashkentDateKey(now: Date): string {
+  const t = new Date(now.getTime() + TASHKENT_OFFSET_HOURS * 3_600_000);
+  return t.toISOString().slice(0, 10);
 }
 
 export interface RunResult {
@@ -61,17 +68,49 @@ export async function runReminders(siteUrl: string, now = new Date()): Promise<R
   }
 
   // ── 2. Отправка ─────────────────────────────────────────────────
+  // Берём все PENDING, а не только с наступившим dueAt по заказу: если
+  // «Мой приём» (Задача B) показывает, что банка кончится раньше, чем
+  // предполагал календарь заказа, напоминание должно уйти раньше —
+  // по более ранней из двух оценок, см. обсуждение в чате.
   const due = await prisma.reminder.findMany({
-    where: { status: "PENDING", dueAt: { lte: now } },
+    where: { status: "PENDING" },
     include: {
       orderItem: {
         include: {
-          product: { select: { name: true } },
+          product: true,
           order: { include: { user: true } },
         },
       },
     },
   });
+
+  const routineCandidates = due.filter((r) => r.orderItem.order.userId);
+  const routineItems = routineCandidates.length
+    ? await prisma.routineItem.findMany({
+        where: {
+          OR: routineCandidates.map((r) => ({
+            userId: r.orderItem.order.userId!,
+            productId: r.orderItem.productId,
+          })),
+        },
+        include: { product: true },
+      })
+    : [];
+  const routineByKey = new Map(routineItems.map((ri) => [`${ri.userId}:${ri.productId}`, ri]));
+
+  const intakeLogs = routineItems.length
+    ? await prisma.intakeLog.findMany({
+        where: { OR: routineItems.map((ri) => ({ userId: ri.userId, productId: ri.productId })) },
+        select: { userId: true, productId: true, date: true, status: true },
+      })
+    : [];
+  const marksByKey = new Map<string, IntakeMark[]>();
+  for (const l of intakeLogs) {
+    const key = `${l.userId}:${l.productId}`;
+    const arr = marksByKey.get(key) ?? [];
+    arr.push({ date: l.date, status: l.status });
+    marksByKey.set(key, arr);
+  }
 
   const { sandbox } = getTelegramConfig();
 
@@ -87,6 +126,31 @@ export async function runReminders(siteUrl: string, now = new Date()): Promise<R
     if (!user || !user.remindersEnabled || !user.reminderChannelConnectedAt) {
       await prisma.reminder.update({ where: { id: r.id }, data: { status: "NO_CHANNEL" } });
       result.noChannel++;
+      continue;
+    }
+
+    // Более ранняя из двух оценок: заказ (календарь доставки) и «Мой приём»
+    // (реальные отметки, если они есть) — не считаем на дисплейный порог
+    // плотности, для срабатывания напоминания годится любая оценка по факту.
+    let effectiveDueAt = r.dueAt;
+    const routineItem = routineByKey.get(`${user.id}:${r.orderItem.productId}`);
+    if (routineItem) {
+      const marks = marksByKey.get(`${user.id}:${r.orderItem.productId}`) ?? [];
+      const est = computeRemaining(
+        { createdAt: routineItem.createdAt, pausedAt: routineItem.pausedAt, product: routineItem.product },
+        marks,
+        now
+      );
+      if (est.earliestDays !== null) {
+        const daysBefore = user.remindDaysBefore ?? DEFAULT_DAYS_BEFORE;
+        const routineDueAt = new Date(now);
+        routineDueAt.setDate(routineDueAt.getDate() + (est.earliestDays - daysBefore));
+        if (routineDueAt < effectiveDueAt) effectiveDueAt = routineDueAt;
+      }
+    }
+
+    if (effectiveDueAt > now) {
+      result.waiting++;
       continue;
     }
 

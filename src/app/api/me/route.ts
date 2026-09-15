@@ -13,6 +13,9 @@ export async function GET() {
       remindersEnabled: user.remindersEnabled,
       remindDaysBefore: user.remindDaysBefore,
       remindHour: user.remindHour,
+      remindHourMorning: user.remindHourMorning,
+      remindHourAfternoon: user.remindHourAfternoon,
+      remindHourEvening: user.remindHourEvening,
       reminderChannelConnected: user.reminderChannelConnectedAt !== null,
     },
   });

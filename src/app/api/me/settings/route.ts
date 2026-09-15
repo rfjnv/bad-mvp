@@ -3,13 +3,18 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/currentUser";
 
+const hour = z.number().int().min(0).max(23);
+
 const schema = z.object({
   remindersEnabled: z.boolean().optional(),
   remindDaysBefore: z.number().int().min(1).max(30).optional(),
-  remindHour: z.number().int().min(0).max(23).optional(),
+  remindHour: hour.optional(),
+  remindHourMorning: hour.optional(),
+  remindHourAfternoon: hour.optional(),
+  remindHourEvening: hour.optional(),
 });
 
-/** Настройки напоминаний «банка заканчивается» */
+/** Настройки напоминаний — «банка заканчивается» и по слотам «Моего приёма» */
 export async function PATCH(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Нужен вход" }, { status: 401 });
@@ -20,5 +25,8 @@ export async function PATCH(req: NextRequest) {
     remindersEnabled: updated.remindersEnabled,
     remindDaysBefore: updated.remindDaysBefore,
     remindHour: updated.remindHour,
+    remindHourMorning: updated.remindHourMorning,
+    remindHourAfternoon: updated.remindHourAfternoon,
+    remindHourEvening: updated.remindHourEvening,
   });
 }

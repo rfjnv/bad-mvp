@@ -212,3 +212,42 @@ export function findInteractionsForCategory(
 ): InteractionMatch[] {
   return findInteractions(items).filter((r) => r.categories.includes(categorySlug));
 }
+
+interface SlotRule {
+  categories: [string, string];
+  message: string;
+}
+
+/**
+ * Те же взаимодействия, что и CATEGORY_RULES, но для «Моего приёма»
+ * (Задача B) — когда два товара стоят в одном слоте времени. Текст
+ * другой (можно перенести в другой слот), ключ с префиксом slot: —
+ * отдельное «Понятно» не гасит предупреждение в корзине и наоборот.
+ */
+const SLOT_RULES: SlotRule[] = [
+  {
+    categories: ["iron", "zinc"],
+    message: "Железо и цинк в одном слоте — конкурируют за всасывание. Можно перенести один из них в другой слот приёма.",
+  },
+  {
+    categories: ["iron", "magnesium"],
+    message: "Железо и магний в одном слоте — при высоких дозах магния это может мешать усвоению железа. Можно развести по разным слотам.",
+  },
+  {
+    categories: ["zinc", "magnesium"],
+    message: "Цинк и магний в одном слоте — при длительном приёме высоких доз цинка это может снижать усвоение магния. При обычных дозировках это обычно не имеет значения.",
+  },
+];
+
+/** Конфликты внутри одного слота времени — для товаров, назначенных на один слот в «Моём приёме» */
+export function findSlotConflicts(items: CompatibilityItem[]): InteractionMatch[] {
+  const categorySlugs = [...new Set(items.map((i) => i.categorySlug))];
+  const matches: InteractionMatch[] = [];
+  for (const rule of SLOT_RULES) {
+    const [a, b] = rule.categories;
+    if (categorySlugs.includes(a) && categorySlugs.includes(b)) {
+      matches.push({ key: `slot:${[a, b].sort().join("|")}`, type: "caution", message: rule.message, categories: [a, b] });
+    }
+  }
+  return matches;
+}

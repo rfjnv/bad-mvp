@@ -51,6 +51,21 @@ enum ReminderStatus {
   REPEATED
 }
 
+/// Слот приёма в течение дня — для собственного напоминания по каждому
+/// слоту вместо одного пакета всех товаров разом
+enum RoutineSlot {
+  MORNING
+  AFTERNOON
+  EVENING
+}
+
+/// TAKEN — принял, SKIPPED — осознанно пропустил (не путать с «не отметил
+/// вообще»: у такого дня строки в IntakeLog просто нет)
+enum IntakeStatus {
+  TAKEN
+  SKIPPED
+}
+
 /// Статус вопроса «это вам или в подарок?» после доставки заказа
 enum DeliveryPromptStatus {
   PENDING
@@ -345,8 +360,13 @@ model User {
   /// Настройки напоминаний «банка заканчивается»
   remindersEnabled Boolean       @default(true)
   remindDaysBefore Int           @default(7)
-  /// Час отправки по Ташкенту, 0–23
+  /// Час отправки по Ташкенту, 0–23 — для позиций «Моего приёма» без слота
+  /// (обратная совместимость) и для напоминания «банка заканчивается»
   remindHour       Int           @default(10)
+  /// Час отправки по слотам — для позиций, которым назначен timeSlot
+  remindHourMorning   Int        @default(8)
+  remindHourAfternoon Int        @default(13)
+  remindHourEvening   Int        @default(19)
   /// Вход через Login Widget НЕ даёт боту права писать пользователю —
   /// для этого нужен отдельный /start по deep-link. NULL = бот не может
   /// слать напоминания; заполняется при успешной привязке, обнуляется,
@@ -363,6 +383,8 @@ model User {
   intake           IntakeLog[]
   plansSent        Plan[]        @relation("PlanOwner")
   plansReceived    Plan[]        @relation("PlanRecipient")
+  slotRemindersSent      SlotReminderSent[]
+  compatibilityDismissals CompatibilityDismissal[]
 }
 
 /// Товар в списке приёма пользователя. Серверная замена localStorage —
@@ -376,23 +398,57 @@ model RoutineItem {
   /// Своя доза, если отличается от дозы товара по умолчанию
   dailyDose Float?
   sortOrder Int      @default(0)
+  /// Утро/день/вечер — не задан по умолчанию, назначается в «Моём приёме»
+  timeSlot  RoutineSlot?
+  /// На паузе: не считается ни принятым, ни пропущенным, серия не рвётся,
+  /// напоминания не шлются, пока не задано значение null (снята с паузы)
+  pausedAt  DateTime?
   createdAt DateTime @default(now())
 
   @@unique([userId, productId])
   @@index([userId])
 }
 
-/// Отметка «принято» за день. Дата — строка YYYY-MM-DD по локальному дню
-/// пользователя, чтобы полночь по UTC не резала серии.
+/// Отметка за день. Дата — строка YYYY-MM-DD по локальному дню
+/// пользователя, чтобы полночь по UTC не резала серии. Отсутствие строки
+/// за день значит «не отметил», а не «пропустил» — это разные вещи
+/// (см. обсуждение остатка банки в чате).
 model IntakeLog {
-  id        String   @id @default(cuid())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String       @id @default(cuid())
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId String
   date      String
-  createdAt DateTime @default(now())
+  status    IntakeStatus @default(TAKEN)
+  createdAt DateTime     @default(now())
 
   @@unique([userId, productId, date])
   @@index([userId, date])
+}
+
+/// Разовая рассылка «не забудьте приём» по слоту за день — идемпотентность
+/// вместо угадывания «уже слал или нет» по времени последнего запуска cron.
+model SlotReminderSent {
+  id     String      @id @default(cuid())
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  slot   RoutineSlot
+  date   String
+  sentAt DateTime    @default(now())
+
+  @@unique([userId, slot, date])
+}
+
+/// «Понятно, не показывать» на предупреждении о совместимости в «Моём
+/// приёме» — запоминание на уровне конкретной пары/вещества (key —
+/// тот же InteractionMatch.key из src/lib/compatibility.ts), не глобально.
+model CompatibilityDismissal {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  key       String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, key])
 }

@@ -10,6 +10,9 @@ export interface CurrentUser {
   remindersEnabled: boolean;
   remindDaysBefore: number;
   remindHour: number;
+  remindHourMorning: number;
+  remindHourAfternoon: number;
+  remindHourEvening: number;
   reminderChannelConnected: boolean;
 }
 
