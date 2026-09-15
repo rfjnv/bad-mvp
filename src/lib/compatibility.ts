@@ -105,6 +105,79 @@ function checkZincHighDose(items: CompatibilityItem[]): InteractionMatch | null 
   };
 }
 
+/** мг — самая мелкая массовая единица в каталоге, приводим к ней для суммы */
+const MASS_TO_MG: Record<string, number> = { г: 1000, мг: 1, мкг: 0.001 };
+
+/** «Магний (бисглицинат)» → «Магний» — форма не меняет вещество, для группировки не нужна */
+function baseSubstanceName(s: string): string {
+  return s.split("(")[0].trim();
+}
+
+function formatMg(mg: number): string {
+  if (mg < 1) return `${Math.round(mg * 1000)} мкг`;
+  if (mg >= 1000) return `${(mg / 1000).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} г`;
+  return `${Math.round(mg * 100) / 100} мг`;
+}
+
+const IODINE_WARNING =
+  "Избыток йода может нарушить работу щитовидной железы. Обычно принимают один источник йода, а не несколько.";
+
+/**
+ * Два и более товара с одним и тем же действующим веществом — суммарная
+ * доза может незаметно удвоиться. Данные те же, из которых считается
+ * цена за мг (activeSubstance/activeAmount/activeUnit) — ничего нового
+ * не заводим. Единицы вне MASS_TO_MG (МЕ, млрд КОЕ) не складываем, если
+ * они не совпадают буквально у всех товаров группы — не гадаем про
+ * пересчёт международных единиц.
+ */
+function checkDuplicateSubstances(items: CompatibilityItem[]): InteractionMatch[] {
+  const groups = new Map<string, { categorySlug: string; amounts: { amount: number; unit: string }[] }>();
+
+  for (const item of items) {
+    if (!item.activeSubstance || item.activeAmount == null || !item.activeUnit) continue;
+    const key = baseSubstanceName(item.activeSubstance);
+    const g = groups.get(key) ?? { categorySlug: item.categorySlug, amounts: [] };
+    g.amounts.push({ amount: item.activeAmount, unit: item.activeUnit });
+    groups.set(key, g);
+  }
+
+  const matches: InteractionMatch[] = [];
+
+  for (const [substance, g] of groups) {
+    if (g.amounts.length < 2) continue;
+
+    const units = new Set(g.amounts.map((a) => a.unit));
+    let doseText: string | null = null;
+
+    if (units.size === 1) {
+      const [unit] = units;
+      const sum = g.amounts.reduce((s, a) => s + a.amount, 0);
+      doseText = unit in MASS_TO_MG ? formatMg(sum * MASS_TO_MG[unit]) : `${sum} ${unit}`;
+    } else if ([...units].every((u) => u in MASS_TO_MG)) {
+      const sumMg = g.amounts.reduce((s, a) => s + a.amount * MASS_TO_MG[a.unit], 0);
+      doseText = formatMg(sumMg);
+    }
+    // Разные несовместимые единицы (например МЕ у одного и мг у другого
+    // в одной группе) в каталоге сейчас не встречаются — если появятся,
+    // просто не покажем сумму, а не придумаем её.
+    if (!doseText) continue;
+
+    const messages = [
+      `В заказе два источника одного вещества — ${substance}. Суммарно получается ${doseText} в день. Проверьте, нужна ли вам такая дозировка.`,
+    ];
+    if (substance === "Йод") messages.push(IODINE_WARNING);
+
+    matches.push({
+      key: `dup|${substance}`,
+      type: "caution",
+      message: messages.join(" "),
+      categories: [g.categorySlug, g.categorySlug],
+    });
+  }
+
+  return matches;
+}
+
 /** Все совпадающие правила среди товаров набора. */
 export function findInteractions(items: CompatibilityItem[]): InteractionMatch[] {
   const categorySlugs = [...new Set(items.map((i) => i.categorySlug))];
@@ -122,6 +195,8 @@ export function findInteractions(items: CompatibilityItem[]): InteractionMatch[]
 
   const zincDose = checkZincHighDose(items);
   if (zincDose) matches.push(zincDose);
+
+  matches.push(...checkDuplicateSubstances(items));
 
   return matches;
 }
