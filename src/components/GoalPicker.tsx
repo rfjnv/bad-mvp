@@ -25,7 +25,7 @@ export default function GoalPicker() {
           <span className="font-semibold tracking-tight">Ничего не беспокоит?</span>
           <span className="text-[13px] sm:text-sm text-text-dim leading-relaxed">
             Работа в помещении, зима без солнца, город без моря — нехватку от этого не чувствуешь.
-            Проверьте по условиям жизни.
+            Отметьте свой образ жизни и посмотрите на силуэте, где это отражается.
           </span>
         </span>
         <span className="text-text-dim group-hover:text-text transition-colors duration-150 shrink-0">

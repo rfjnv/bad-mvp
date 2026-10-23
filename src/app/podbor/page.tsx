@@ -38,13 +38,13 @@ export default async function PodborPage() {
   }));
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex flex-col gap-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex flex-col gap-6 sm:gap-8">
       <header className="flex flex-col gap-3">
-        <h1 className="display-1 max-w-2xl">Где и как вы живёте</h1>
+        <h1 className="display-1 max-w-3xl">Где и как вы живёте</h1>
         <p className="text-text-dim max-w-2xl text-[17px]">
           Нехватку витаминов обычно не чувствуешь — она приходит не от болезни,
-          а от города и распорядка дня. Отметьте, что про вас, и мы объясним,
-          что из этого следует.
+          а от города и распорядка дня. Отметьте, что про вас, — и посмотрите,
+          где это отражается.
         </p>
       </header>
 
