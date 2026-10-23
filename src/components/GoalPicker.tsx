@@ -2,62 +2,40 @@ import Link from "next/link";
 import { GOALS } from "@/lib/goals";
 
 /**
- * Главный вход в каталог: не «Категории», а «Что вас беспокоит?».
- * Крупная типографика и тонкие линии вместо плашек — цель здесь и есть заголовок.
+ * Вход в каталог через жалобу — нумерованный индекс, как оглавление.
+ * Подбор по образу жизни стоит отдельно и раньше: дефицит от условий
+ * человек не чувствует, поэтому о нём говорит табло солнца, а не этот список.
  */
 export default function GoalPicker() {
   return (
-    <section>
-      <div className="flex flex-col gap-2 mb-6">
+    <section className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-6 lg:gap-14">
+      <div className="flex flex-col gap-3 lg:sticky lg:top-28 self-start">
+        <span className="label-mono text-text-dim">Указатель</span>
         <h2 className="display-2">Что вас беспокоит?</h2>
-        <p className="text-text-dim max-w-xl">
-          Начните с проблемы, а не с названия витамина — покажем, что при ней обычно принимают.
+        <p className="text-text-dim max-w-sm">
+          Начните с ощущения, а не с названия витамина — покажем, что при нём обычно принимают.
         </p>
       </div>
 
-      {/* Второй вход — для тех, кого пока ничего не беспокоит: дефицит от условий
-          жизни человек не чувствует, поэтому спрашивать про симптом бесполезно */}
-      <Link
-        href="/podbor"
-        className="group flex items-center justify-between gap-4 border border-border-strong rounded-2xl p-4 sm:p-5 mb-6 hover:bg-bg-panel transition-colors duration-150"
-      >
-        <span className="flex flex-col gap-1 min-w-0">
-          <span className="font-semibold tracking-tight">Ничего не беспокоит?</span>
-          <span className="text-[13px] sm:text-sm text-text-dim leading-relaxed">
-            Работа в помещении, зима без солнца, город без моря — нехватку от этого не чувствуешь.
-            Отметьте свой образ жизни и посмотрите на силуэте, где это отражается.
-          </span>
-        </span>
-        <span className="text-text-dim group-hover:text-text transition-colors duration-150 shrink-0">
-          <ArrowIcon />
-        </span>
-      </Link>
-
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 border-t border-l border-border">
-        {GOALS.map((goal) => (
-          <Link
-            key={goal.slug}
-            href={`/catalog?goal=${goal.slug}`}
-            className="group flex flex-col gap-1 sm:gap-1.5 border-b border-r border-border p-4 sm:p-5 min-h-[92px] sm:min-h-[128px] hover:bg-bg-panel transition-colors duration-150"
-          >
-            <span className="flex items-center justify-between gap-3">
-              <span className="text-lg sm:text-xl font-semibold tracking-tight">{goal.title}</span>
-              <span className="text-text-dim group-hover:text-text transition-colors duration-150 shrink-0">
-                <ArrowIcon />
+      <ol className="m-0 p-0 list-none border-t border-text">
+        {GOALS.map((goal, i) => (
+          <li key={goal.slug}>
+            <Link
+              href={`/catalog?goal=${goal.slug}`}
+              className="group grid grid-cols-[2.5rem_minmax(0,1fr)_auto] sm:grid-cols-[3.5rem_minmax(0,1fr)_minmax(0,1fr)_auto] items-baseline gap-x-3 border-b border-border py-4 sm:py-5 hover:bg-bg-panel transition-colors duration-300 -mx-2 px-2"
+            >
+              <span className="label-mono text-text-dim">{String(i + 1).padStart(2, "0")}</span>
+              <span className="text-[22px] sm:text-[28px] font-medium tracking-[-0.035em] leading-tight transition-transform duration-300 group-hover:translate-x-1">
+                {goal.title}
               </span>
-            </span>
-            <span className="text-[13px] text-text-dim leading-relaxed">{goal.hint}</span>
-          </Link>
+              <span className="hidden sm:block text-[14px] text-text-dim leading-snug">{goal.hint}</span>
+              <span className="text-text-dim group-hover:text-amber transition-colors duration-300" aria-hidden="true">
+                →
+              </span>
+            </Link>
+          </li>
         ))}
-      </div>
+      </ol>
     </section>
-  );
-}
-
-function ArrowIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M5 12h14M13 6l6 6-6 6" />
-    </svg>
   );
 }

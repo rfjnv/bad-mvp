@@ -107,31 +107,53 @@ export default async function CatalogPage({
   );
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-      <h1 className="display-1 mb-2">{goal ? goal.title : t.catalog.title}</h1>
-      {goal ? (
-        <div className="flex flex-wrap items-center gap-3 mb-6">
-          <p className="text-text-dim">{goal.hint}</p>
-          <Link href="/catalog" className="text-sm link-action">
-            Показать весь каталог
-          </Link>
-        </div>
-      ) : (
-        <div className="mb-6" />
-      )}
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12">
+      <header className="flex flex-col gap-3 mb-8 sm:mb-12">
+        <span className="label-mono text-text-dim">
+          {goal ? "Подбор по ощущению" : "Каталог"} · {total} {total === 1 ? "товар" : "товаров"}
+        </span>
+        <h1 className="display-1">{goal ? goal.title : activeCategory ? activeCategory.name : t.catalog.title}</h1>
+        {goal && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <p className="text-text-dim text-[17px]">{goal.hint}</p>
+            <Link href="/catalog" className="text-sm link-action">
+              Показать весь каталог
+            </Link>
+          </div>
+        )}
+        {activeCategory?.formGuide && (
+          <p className="border-l-2 border-amber pl-4 mt-2 max-w-2xl text-[15px] text-text-dim leading-relaxed">
+            {activeCategory.formGuide}
+          </p>
+        )}
+      </header>
 
-      {activeCategory?.formGuide && (
-        <div className="border-l-2 border-border-strong pl-4 mb-6 max-w-2xl text-[15px] text-text-dim leading-relaxed">
-          {activeCategory.formGuide}
-        </div>
-      )}
+      {/* Телефон: категории лентой — не открывать шторку фильтров ради одной категории */}
+      <nav className="md:hidden -mx-4 px-4 mb-5 flex gap-5 overflow-x-auto whitespace-nowrap [scrollbar-width:none] border-b border-border" aria-label="Категории">
+        {[{ slug: "", name: "Все" }, ...categories].map((c) => {
+          const active = (query.category ?? "") === c.slug;
+          const params = new URLSearchParams(flat as Record<string, string>);
+          if (c.slug) params.set("category", c.slug);
+          else params.delete("category");
+          params.delete("page");
+          return (
+            <Link
+              key={c.slug || "all"}
+              href={`/catalog?${params.toString()}`}
+              className={`py-3 text-[15px] border-b-2 -mb-px transition-colors ${active ? "border-text text-text font-medium" : "border-transparent text-text-dim"}`}
+            >
+              {c.name}
+            </Link>
+          );
+        })}
+      </nav>
 
-      <div className="flex flex-col md:flex-row gap-8">
+      <div className="flex flex-col md:flex-row gap-5 md:gap-12">
         <CatalogFilters categories={categories} brands={brands} total={total} />
 
         <div className="flex-1 min-w-0 flex flex-col gap-5">
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-sm text-text-dim">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="label-mono text-text-dim hidden md:block">
               {t.catalog.found}: {total}
             </div>
             <CatalogSort />
@@ -150,7 +172,7 @@ export default async function CatalogPage({
               }
             />
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-10">
               {pageItems.map((p) => (
                 <ProductCard key={p.id} product={p} bestValue={bestValueSlugs.has(p.slug)} />
               ))}
@@ -166,10 +188,9 @@ export default async function CatalogPage({
                   <Link
                     key={p}
                     href={`/catalog?${params.toString()}`}
-                    className={`w-11 h-11 flex items-center justify-center rounded-lg text-[15px] border transition-colors duration-150 ${
-                      p === page
-                        ? "bg-accent text-white border-accent font-semibold"
-                        : "bg-white text-text border-border font-medium hover:border-border-strong"
+                    aria-current={p === page ? "page" : undefined}
+                    className={`w-11 h-11 flex items-center justify-center rounded-lg text-[15px] tabular border transition-colors duration-200 ${
+                      p === page ? "bg-text text-bg border-text" : "text-text border-border hover:border-text"
                     }`}
                   >
                     {p}

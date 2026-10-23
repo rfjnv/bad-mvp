@@ -50,138 +50,121 @@ export default function Header() {
     };
   }, []);
 
+  const nav = [
+    { href: "/catalog", label: t.nav.catalog },
+    { href: "/podbor", label: "Подбор" },
+    { href: "/bundles", label: t.bundles.navTitle },
+    { href: "/subscription", label: t.nav.subscription },
+    { href: "/tracker", label: t.nav.tracker },
+  ];
+
   return (
-    <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-border">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-        <Link href="/" className="font-semibold text-lg tracking-tight shrink-0">
-          {t.common.siteName}
+    <header className="sticky top-0 z-20 bg-bg/85 backdrop-blur-xl border-b border-border">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-4">
+        <Link href="/" className="flex items-center gap-2 shrink-0" aria-label={t.common.siteName}>
+          {/* Янтарная точка — солнце, с которого начинается весь разговор о дефиците */}
+          <span className="w-2.5 h-2.5 rounded-full bg-amber" aria-hidden="true" />
+          <span className="font-semibold text-[17px] tracking-[-0.03em]">{t.common.siteName}</span>
+          <span className="label-mono text-text-dim hidden lg:inline ml-1">Ташкент</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6 text-[15px] text-text-dim">
-          <Link href="/" className="hover:text-text transition-colors">
-            {t.nav.home}
-          </Link>
-          <Link href="/catalog" className="hover:text-text transition-colors">
-            {t.nav.catalog}
-          </Link>
-          <Link href="/podbor" className="hover:text-text transition-colors">
-            Подбор
-          </Link>
-          <Link href="/bundles" className="hover:text-text transition-colors">
-            {t.bundles.navTitle}
-          </Link>
-          <Link href="/subscription" className="hover:text-text transition-colors">
-            {t.nav.subscription}
-          </Link>
-          <Link href="/tracker" className="hover:text-text transition-colors">
-            {t.nav.tracker}
-          </Link>
+        <nav className="hidden md:flex items-center gap-7 text-[14px]">
+          {nav.map((item) => (
+            <Link key={item.href} href={item.href} className="text-text-dim hover:text-text transition-colors duration-200">
+              {item.label}
+            </Link>
+          ))}
         </nav>
 
-        <div className="flex items-center gap-1 sm:gap-2">
-          <Link
-            href={user ? "/account" : "/account?login=1"}
-            className="hidden sm:flex items-center gap-2 h-11 px-3 rounded-lg hover:bg-bg-panel transition-colors duration-150 text-[15px]"
+        <div className="flex items-center gap-1 sm:gap-3 text-[14px]">
+          <a
+            href={CONTACTS.telegramHref}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-center w-10 h-10 text-text-dim hover:text-text transition-colors duration-200"
+            aria-label="Написать в Telegram"
           >
-            <UserIcon />
-            <span className="max-w-[120px] truncate">{user ? user.firstName : "Войти"}</span>
-          </Link>
+            <TelegramIcon />
+          </a>
           <a
             href={CONTACTS.phoneHref}
-            className="flex items-center justify-center w-11 h-11 rounded-lg hover:bg-bg-panel transition-colors duration-150"
+            className="hidden sm:flex items-center justify-center w-10 h-10 text-text-dim hover:text-text transition-colors duration-200"
             aria-label={`Позвонить ${CONTACTS.phone}`}
           >
             <PhoneIcon />
+          </a>
+          <Link
+            href={user ? "/account" : "/account?login=1"}
+            className="hidden sm:inline-flex items-center h-10 px-1 text-text-dim hover:text-text transition-colors duration-200 max-w-[140px] truncate"
+          >
+            {user ? user.firstName : "Войти"}
+          </Link>
+
+          <Link
+            href="/cart"
+            className={`inline-flex items-center gap-1.5 h-10 px-1 font-medium ${bump ? "animate-pop" : ""}`}
+            aria-label={`${t.nav.cart}${count > 0 ? `: ${count}` : ""}`}
+          >
+            {t.nav.cart}
+            <span
+              className={`tabular min-w-[20px] h-[20px] px-1.5 rounded-full text-[11px] font-semibold flex items-center justify-center transition-colors duration-200 ${
+                count > 0 ? "bg-text text-bg" : "bg-bg-panel text-text-dim"
+              } ${bump ? "animate-badge-pop" : ""}`}
+            >
+              {count}
+            </span>
+          </Link>
+
+          <button
+            className="md:hidden inline-flex items-center h-10 pl-2 font-medium"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            {menuOpen ? "Закрыть" : "Меню"}
+          </button>
+        </div>
+      </div>
+
+      <nav
+        id="mobile-menu"
+        hidden={!menuOpen}
+        className="md:hidden border-t border-border bg-bg px-4 pt-2 pb-5 flex flex-col"
+      >
+        {[{ href: "/", label: t.nav.home }, ...nav, { href: "/account", label: user ? `Кабинет · ${user.firstName}` : "Войти через Telegram" }].map(
+          (item, i) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setMenuOpen(false)}
+              className="min-h-[56px] flex items-baseline gap-4 border-b border-border text-[22px] font-medium tracking-[-0.03em] pt-3"
+            >
+              <span className="label-mono text-text-dim w-6">{String(i + 1).padStart(2, "0")}</span>
+              {item.label}
+            </Link>
+          )
+        )}
+
+        <div className="grid grid-cols-2 gap-2 pt-5">
+          <a href={CONTACTS.phoneHref} className="min-h-[48px] px-4 rounded-lg btn btn-primary text-sm">
+            <PhoneIcon />
+            Позвонить
           </a>
           <a
             href={CONTACTS.telegramHref}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center justify-center w-11 h-11 rounded-lg hover:bg-bg-panel transition-colors duration-150"
-            aria-label="Написать в Telegram"
+            className="min-h-[48px] px-4 rounded-lg btn btn-secondary text-sm"
           >
             <TelegramIcon />
+            Telegram
           </a>
-
-          <Link
-            href="/cart"
-            className={`relative flex items-center justify-center w-11 h-11 rounded-lg hover:bg-bg-panel transition-colors duration-150 ${bump ? "animate-pop" : ""}`}
-            aria-label={t.nav.cart}
-          >
-            <CartIcon />
-            {count > 0 && (
-              <span
-                className={`absolute top-0.5 right-0.5 min-w-[17px] h-[17px] px-1 rounded-full bg-accent text-white text-[10px] font-semibold flex items-center justify-center ${bump ? "animate-badge-pop" : ""}`}
-              >
-                {count}
-              </span>
-            )}
-          </Link>
-
-          <button
-            className="md:hidden flex items-center justify-center w-11 h-11 rounded-lg hover:bg-bg-panel transition-colors duration-150"
-            aria-label="Меню"
-            onClick={() => setMenuOpen((v) => !v)}
-          >
-            <BurgerIcon />
-          </button>
         </div>
-      </div>
-
-      {menuOpen && (
-        <nav className="md:hidden border-t border-border bg-white px-5 py-2 flex flex-col text-[15px]">
-          {[
-            { href: "/", label: t.nav.home },
-            { href: "/catalog", label: t.nav.catalog },
-            { href: "/podbor", label: "Подбор" },
-            { href: "/bundles", label: t.bundles.navTitle },
-            { href: "/subscription", label: t.nav.subscription },
-            { href: "/tracker", label: t.nav.tracker },
-            { href: "/account", label: user ? `Кабинет · ${user.firstName}` : "Войти через Telegram" },
-          ].map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMenuOpen(false)}
-              className="min-h-[48px] flex items-center border-b border-border last:border-b-0"
-            >
-              {item.label}
-            </Link>
-          ))}
-
-          <div className="grid grid-cols-2 gap-3 py-4">
-            <a
-              href={CONTACTS.phoneHref}
-              className="min-h-[48px] px-4 rounded-lg btn btn-primary text-sm"
-            >
-              <PhoneIcon />
-              Позвонить
-            </a>
-            <a
-              href={CONTACTS.telegramHref}
-              target="_blank"
-              rel="noreferrer"
-              className="min-h-[48px] px-4 rounded-lg btn btn-secondary text-sm"
-            >
-              <TelegramIcon />
-              Telegram
-            </a>
-          </div>
-        </nav>
-      )}
+      </nav>
     </header>
   );
 }
 
-function CartIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <circle cx="9" cy="21" r="1" />
-      <circle cx="20" cy="21" r="1" />
-      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-    </svg>
-  );
-}
 
 function PhoneIcon() {
   return (
@@ -199,21 +182,4 @@ function TelegramIcon() {
   );
 }
 
-function UserIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
-    </svg>
-  );
-}
 
-function BurgerIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <line x1="3" y1="6" x2="21" y2="6" />
-      <line x1="3" y1="12" x2="21" y2="12" />
-      <line x1="3" y1="18" x2="21" y2="18" />
-    </svg>
-  );
-}

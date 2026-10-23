@@ -138,7 +138,7 @@ export default function CartPage() {
           line.product ? (
             <div
               key={line.slug}
-              className="flex gap-4 bg-white border border-border rounded-2xl p-3.5"
+              className="flex gap-4 py-4 border-b border-border"
             >
               <Link href={`/product/${line.product.slug}`} className="relative w-20 h-20 shrink-0 rounded-xl overflow-hidden bg-bg-panel">
                 <Image src={line.product.imageUrl} alt={line.product.name} fill className="object-cover" />

@@ -73,7 +73,7 @@ export default function PodborClient({
     <div className="flex flex-col gap-14">
       <div className="grid lg:grid-cols-[minmax(0,1fr)_440px] gap-6 lg:gap-12 items-start">
         {/* Телефон: силуэт с легендой залипает над списком — видно, что загорается от каждого тапа */}
-        <div className="lg:hidden sticky top-16 z-10 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-xl border-b border-border">
+        <div className="lg:hidden sticky top-16 z-10 -mx-4 px-4 py-3 bg-bg/90 backdrop-blur-xl border-b border-border">
           <BodyMapCompact active={activeZones} />
         </div>
 
@@ -87,7 +87,7 @@ export default function PodborClient({
                   onClick={() => toggle(condition.slug)}
                   aria-pressed={active}
                   className={`flex items-center gap-3 text-left border-b border-r border-border p-3 sm:p-4 min-h-[72px] transition-colors duration-150 ${
-                    active ? "bg-accent text-white" : "bg-white hover:bg-bg-panel"
+                    active ? "bg-accent text-white" : "hover:bg-bg-panel"
                   }`}
                 >
                   <span
@@ -149,7 +149,7 @@ export default function PodborClient({
                   <Link href={`/product/${product.slug}`} className="font-medium leading-snug line-clamp-2 hover:underline">
                     {product.name}
                   </Link>
-                  <span className="text-[13px] text-green">{because.join(" · ")}</span>
+                  <span className="text-[13px] text-amber">{because.join(" · ")}</span>
                 </div>
                 <span className="font-semibold tracking-tight shrink-0">{formatSum(product.price)}</span>
               </li>

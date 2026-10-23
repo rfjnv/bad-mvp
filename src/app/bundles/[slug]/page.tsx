@@ -46,7 +46,7 @@ export default async function BundlePage({ params }: { params: Promise<{ slug: s
       <div className="grid sm:grid-cols-2 gap-8 sm:gap-12">
         <div className="relative aspect-square bg-bg-panel rounded-3xl overflow-hidden">
           <Image src={bundle.imageUrl} alt={bundle.name} fill className="object-cover" priority />
-          <span className="absolute top-4 left-4 bg-red text-white text-sm font-semibold px-3 py-1.5 rounded-lg">
+          <span className="label-mono absolute top-4 left-4 bg-amber text-white px-2 py-1 rounded-md">
             {t.bundles.save(bundle.discountPct)}
           </span>
         </div>
@@ -88,7 +88,7 @@ export default async function BundlePage({ params }: { params: Promise<{ slug: s
             <Link
               key={product.id}
               href={`/product/${product.slug}`}
-              className="flex items-center gap-4 bg-white border border-border rounded-2xl p-3.5 hover:border-accent/40 transition-colors"
+              className="flex items-center gap-4 py-3.5 border-b border-border hover:bg-bg-panel transition-colors -mx-2 px-2"
             >
               <div className="relative w-16 h-16 shrink-0 rounded-xl overflow-hidden bg-bg-panel">
                 <Image src={product.imageUrl} alt={product.name} fill className="object-cover" />

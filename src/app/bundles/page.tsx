@@ -15,55 +15,56 @@ export default async function BundlesPage() {
   });
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 flex flex-col gap-8">
-      <div>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 flex flex-col gap-10 sm:gap-14">
+      <header className="flex flex-col gap-3">
+        <span className="label-mono text-text-dim">Со скидкой за комплект · {bundles.length}</span>
         <h1 className="display-1">{t.bundles.pageTitle}</h1>
-        <p className="text-text-dim mt-1 max-w-xl">{t.bundles.pageSubtitle}</p>
-      </div>
+        <p className="text-text-dim text-[17px] max-w-xl">{t.bundles.pageSubtitle}</p>
+      </header>
 
-      <div className="grid sm:grid-cols-2 gap-5">
+      <div className="grid md:grid-cols-2 gap-x-8 gap-y-14">
         {bundles.map((b) => {
           const normalPrice = b.items.reduce((sum, i) => sum + i.product.price, 0);
           const bundlePrice = Math.round(normalPrice * (1 - b.discountPct / 100));
           return (
             <div
               key={b.id}
-              className="group flex flex-col bg-white border border-border rounded-3xl overflow-hidden hover:border-border-strong transition-colors duration-150"
+              className="group flex flex-col gap-5"
             >
-              <Link href={`/bundles/${b.slug}`} className="relative aspect-[16/9] bg-bg-panel block">
+              <Link href={`/bundles/${b.slug}`} className="relative aspect-[4/3] bg-bg-panel block rounded-3xl overflow-hidden">
                 <Image
                   src={b.imageUrl}
                   alt={b.name}
                   fill
                   sizes="(max-width: 640px) 100vw, 480px"
-                  className="object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                  className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
                 />
-                <span className="absolute top-3 left-3 bg-red text-white text-xs font-semibold px-3 py-1.5 rounded-lg">
-                  {t.bundles.save(b.discountPct)}
+                <span className="label-mono absolute top-3 left-3 bg-bg/90 backdrop-blur px-1.5 py-0.5 rounded-md">
+                  −{b.discountPct}% за комплект
                 </span>
               </Link>
-              <div className="p-5 flex flex-col gap-2 flex-1">
-                <Link href={`/bundles/${b.slug}`} className="font-semibold text-lg">
+              <div className="flex flex-col gap-2 flex-1">
+                <Link href={`/bundles/${b.slug}`} className="text-[24px] font-medium tracking-[-0.03em] leading-tight hover:underline underline-offset-4 decoration-border">
                   {b.name}
                 </Link>
-                <p className="text-sm text-text-dim line-clamp-2">{b.description}</p>
+                <p className="text-[15px] text-text-dim line-clamp-2">{b.description}</p>
                 {/* Набор продаёт перечень, а не слово «набор»:
                     «Витамин C + эхинацея + бузина» понятнее, чем «3 товара» */}
-                <ul className="flex flex-col gap-1.5 m-0 p-0 list-none border-t border-border pt-3 mt-1">
+                <ul className="flex flex-col m-0 p-0 list-none border-t border-text mt-2">
                   {b.items.map((i) => (
-                    <li key={i.id} className="flex items-baseline justify-between gap-3 text-sm">
+                    <li key={i.id} className="flex items-baseline justify-between gap-3 text-[14px] py-2.5 border-b border-border">
                       <span className="text-text truncate">{i.product.name}</span>
-                      <span className="text-text-dim shrink-0 text-[13px]">
+                      <span className="text-text-dim shrink-0 text-[13px] tabular">
                         {formatSum(i.product.price)}
                       </span>
                     </li>
                   ))}
                 </ul>
 
-                <div className="flex items-baseline gap-2 mt-2 border-t border-border pt-3">
-                  <span className="text-lg font-semibold tracking-tight">{formatSum(bundlePrice)}</span>
+                <div className="flex items-baseline gap-2 pt-3 tabular">
+                  <span className="text-[20px] font-medium tracking-[-0.02em]">{formatSum(bundlePrice)}</span>
                   <span className="text-sm text-text-dim line-through">{formatSum(normalPrice)}</span>
-                  <span className="text-sm text-red font-medium ml-auto shrink-0">
+                  <span className="label-mono text-amber ml-auto shrink-0">
                     −{formatSum(normalPrice - bundlePrice)}
                   </span>
                 </div>

@@ -1,19 +1,25 @@
 @import "tailwindcss";
 
+/* Палитра снята пипеткой с собственных фото магазина: янтарное стекло банок,
+   шалфей из баннера иммунитета, глина ташкентского кирпича под подложки */
 :root {
-  --bg: #ffffff;
-  --bg-panel: #f2f3f5;
+  --bg: #faf9f7;
+  --bg-panel: #f1ede6;
   --bg-panel-2: #ffffff;
-  --border: #dcdee4;
-  --border-strong: #14171d;
-  --text: #14171d;
-  --text-dim: #5a6070;
-  --accent: #14171d;
+  --border: #e3ded5;
+  --border-strong: #1b1916;
+  --text: #1b1916;
+  --text-dim: #6b655c;
+  --accent: #1b1916;
   --accent-dark: #000000;
-  --green: #12653c;
-  --green-bg: #e9f1ec;
-  --red: #a32b1c;
-  --red-bg: #f6ebe9;
+  --amber: #9a5b22;
+  --amber-bg: #f5ebdf;
+  --sage: #6f7656;
+  --sage-bg: #e9eadf;
+  --green: #3f6b45;
+  --green-bg: #e7eee3;
+  --red: #a0361f;
+  --red-bg: #f6e8e2;
 }
 
 @theme inline {
@@ -30,13 +36,20 @@
   --color-green-bg: var(--green-bg);
   --color-red: var(--red);
   --color-red-bg: var(--red-bg);
+  --color-amber: var(--amber);
+  --color-amber-bg: var(--amber-bg);
+  --color-sage: var(--sage);
+  --color-sage-bg: var(--sage-bg);
 
-  /* Строгая шкала радиусов: две ступени — карточки и элементы управления */
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 10px;
-  --radius-2xl: 12px;
-  --radius-3xl: 14px;
+  --font-sans: var(--font-onest), -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: var(--font-plex), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Аптечная строгость: углы почти прямые, у фото — чуть мягче */
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-xl: 5px;
+  --radius-2xl: 6px;
+  --radius-3xl: 8px;
 }
 
 @layer base {
@@ -55,26 +68,30 @@
     scroll-behavior: smooth;
   }
 
+  [hidden] {
+    display: none !important;
+  }
+
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Arial, sans-serif;
+    font-family: var(--font-onest), -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
     font-size: 16px;
-    line-height: 1.47;
-    letter-spacing: -0.01em;
+    line-height: 1.5;
+    letter-spacing: -0.005em;
     -webkit-font-smoothing: antialiased;
   }
 
   h1,
   h2 {
-    letter-spacing: -0.035em;
-    font-weight: 700;
-    line-height: 1.05;
+    letter-spacing: -0.03em;
+    font-weight: 600;
+    line-height: 1.02;
   }
 
   h3 {
-    letter-spacing: -0.025em;
-    font-weight: 650;
+    letter-spacing: -0.02em;
+    font-weight: 600;
   }
 
   a {
@@ -103,20 +120,37 @@
     justify-content: center;
     gap: 0.5rem;
     border: 1px solid transparent;
-    font-weight: 600;
+    font-weight: 500;
+    letter-spacing: 0;
     cursor: pointer;
-    transition: background-color 0.15s linear, color 0.15s linear, border-color 0.15s linear;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   }
 
   .btn-primary {
     background: var(--accent);
-    color: #fff;
+    color: var(--bg);
     border-color: var(--accent);
   }
 
   .btn-primary:hover:not(:disabled) {
-    background: transparent;
-    color: var(--accent);
+    background: var(--amber);
+    border-color: var(--amber);
+    color: #fff;
+  }
+
+  /* Этикетка на флаконе: дозировка, цена за вещество, дни — всё, что
+     магазин считает и показывает честно, набирается одним моно-голосом */
+  .label-mono {
+    font-family: var(--font-plex), ui-monospace, Menlo, Consolas, monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
   }
 
   .btn-secondary {
@@ -147,17 +181,25 @@
 
 /* Заголовки-«витрины»: крупно, плотно, без плашек */
 .display-1 {
-  font-size: clamp(2rem, 6vw, 3.25rem);
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  line-height: 1;
+  font-size: clamp(2.25rem, 6.4vw, 4.5rem);
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 0.96;
 }
 
 .display-2 {
-  font-size: clamp(1.5rem, 3.6vw, 2.25rem);
-  font-weight: 700;
+  font-size: clamp(1.6rem, 3.4vw, 2.6rem);
+  font-weight: 600;
   letter-spacing: -0.035em;
-  line-height: 1.05;
+  line-height: 1.02;
+}
+
+.display-mega {
+  font-size: clamp(7rem, 26vw, 19rem);
+  font-weight: 500;
+  letter-spacing: -0.07em;
+  line-height: 0.8;
+  font-variant-numeric: tabular-nums;
 }
 
 .line-clamp-2 {
@@ -229,6 +271,39 @@
   animation: checkIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
+/* Табло солнца: дуга дня прорисовывается один раз — единственный «вход» на главной */
+@keyframes sunCurve {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.sun-curve {
+  stroke-dasharray: 1;
+  animation: sunCurve 1.8s cubic-bezier(0.65, 0, 0.35, 1) 0.2s both;
+}
+
+@keyframes sunGlow {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.55;
+  }
+}
+
+.sun-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: sunGlow 3.2s ease-in-out infinite;
+}
+
 /* Карта тела в подборе: пинг загоревшейся зоны и бегущий контур иммунитета */
 @keyframes bodyPing {
   from {
@@ -257,18 +332,6 @@
   animation: bodyHalo 6s linear infinite;
 }
 
-/* Скролл-реализация появления секций */
-.reveal {
-  opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.reveal.reveal-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -277,10 +340,5 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
-  }
-
-  .reveal {
-    opacity: 1;
-    transform: none;
   }
 }

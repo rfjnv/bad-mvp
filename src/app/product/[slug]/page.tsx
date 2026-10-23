@@ -5,8 +5,8 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { formatSum } from "@/lib/format";
 import { t } from "@/lib/i18n";
-import { computePricePerUnit, formatPricePerUnit, formatPricePerUnitShort } from "@/lib/activeValue";
-import { computeDuration, formatDuration } from "@/lib/duration";
+import { computePricePerUnit, formatPricePerUnitShort } from "@/lib/activeValue";
+import { computeDuration, formatDuration, pluralRu } from "@/lib/duration";
 import { getBestValueSlugs } from "@/lib/bestValue";
 import { formatNumber } from "@/lib/format";
 import ProductAddToCart from "@/components/ProductAddToCart";
@@ -75,165 +75,158 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     .map((p) => ({ product: p, value: computePricePerUnit(p), duration: computeDuration(p) }));
   const showComparison = compareRows.filter((r) => r.value).length >= 2;
 
+  const docsOk = [product.sesCertNumber, product.conformityCertNumber].filter(Boolean).length;
+  const labelRows: { label: string; value: React.ReactNode; note?: string | null }[] = [
+    ...(product.activeSubstance && product.activeAmount && product.activeUnit
+      ? [{ label: "Вещество", value: `${product.activeSubstance} · ${formatNumber(product.activeAmount)} ${product.activeUnit} на порцию` }]
+      : []),
+    ...(perUnit ? [{ label: "Цена за вещество", value: <span className="text-amber">{formatPricePerUnitShort(perUnit)}</span> }] : []),
+    ...(duration
+      ? [
+          {
+            label: "Хватит на",
+            value: `${formatNumber(duration.days)} ${pluralRu(duration.days, ["день", "дня", "дней"])} · ≈ ${formatSum(duration.pricePerDay)}/день`,
+            note: formatDuration(duration),
+          },
+        ]
+      : []),
+    ...(product.form ? [{ label: "Форма", value: product.form, note: product.formNote }] : []),
+    { label: "Документы", value: docsOk > 0 ? `${docsOk} из 2 · номера ниже` : "по запросу в Telegram" },
+  ];
+
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 pb-28 sm:pb-12 flex flex-col gap-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-28 sm:pb-12 flex flex-col gap-16 sm:gap-24">
       <TrackProductView slug={product.slug} />
-      <nav className="flex items-center gap-1.5 text-sm text-text-dim flex-wrap">
-        <Link href="/" className="hover:text-text transition-colors">
-          {t.nav.home}
-        </Link>
-        <span>/</span>
-        <Link
-          href={`/catalog?category=${product.category.slug}`}
-          className="hover:text-text transition-colors"
-        >
-          {product.category.name}
-        </Link>
-        <span>/</span>
-        <span className="text-text truncate max-w-[240px]">{product.name}</span>
-      </nav>
 
-      <div className="grid sm:grid-cols-2 gap-8 sm:gap-12">
-        {/* Правая колонка вдвое длиннее фото, поэтому при скролле слева
-            оставалась полоса пустоты. Фото едет вместе со страницей. */}
-        <div className="sm:sticky sm:top-24 self-start w-full">
-          <div className="relative aspect-square bg-bg-panel rounded-3xl overflow-hidden">
-            <Image
-              src={product.imageUrl}
-              alt={product.name}
-              fill
-              sizes="(max-width: 640px) 100vw, 464px"
-              className="object-contain p-6 mix-blend-multiply"
-              priority
-            />
-            {hasDiscount && (
-              <span className="absolute top-4 left-4 bg-red text-white text-sm font-semibold px-3 py-1.5 rounded-lg">
-                −{discountPct}%
-              </span>
-            )}
-          </div>
-        </div>
+      <div className="flex flex-col gap-6">
+        <nav className="label-mono flex items-center gap-2 text-text-dim flex-wrap" aria-label="Навигация">
+          <Link href="/" className="hover:text-text transition-colors">
+            {t.nav.home}
+          </Link>
+          <span>/</span>
+          <Link href={`/catalog?category=${product.category.slug}`} className="hover:text-text transition-colors">
+            {product.category.name}
+          </Link>
+        </nav>
 
-        <div className="flex flex-col gap-5">
-          <div>
-            <div className="text-sm text-text-dim mb-1">{product.brand}</div>
-            <h1 className="display-2">{product.name}</h1>
-          </div>
-
-          <div>
-            <div className="flex items-baseline gap-3">
-              <span className="display-2">{formatSum(product.price)}</span>
-              {product.oldPrice && product.oldPrice > product.price && (
-                <span className="text-text-dim line-through">{formatSum(product.oldPrice)}</span>
+        <div className="grid md:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] gap-8 md:gap-14">
+          {/* Правая колонка вдвое длиннее фото — фото едет вместе со страницей */}
+          <div className="md:sticky md:top-24 self-start w-full">
+            <div className="relative aspect-[4/5] bg-bg-panel rounded-3xl overflow-hidden">
+              <Image
+                src={product.imageUrl}
+                alt={`${product.brand} — ${product.name}`}
+                fill
+                sizes="(max-width: 768px) 100vw, 560px"
+                className="object-contain p-[12%] mix-blend-multiply"
+                priority
+              />
+              {hasDiscount && (
+                <span className="label-mono absolute top-4 left-4 bg-amber text-white px-2 py-1 rounded-md">−{discountPct}%</span>
               )}
             </div>
-            {perUnit && (
-              <div className="text-sm text-text-dim mt-1">{formatPricePerUnit(perUnit)}</div>
-            )}
-            {/* Форма вещества объясняет разницу в цене за мг между товарами —
-                без этого текста дорогая форма читается просто как «дорого» */}
-            {product.form && (
-              <div className="mt-1.5 inline-flex items-baseline gap-1.5 flex-wrap">
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-bg-panel">{product.form}</span>
-                {product.formNote && <span className="text-xs text-text-dim">{product.formNote}</span>}
+          </div>
+
+          <div className="flex flex-col gap-7">
+            <div className="flex flex-col gap-3">
+              <span className="label-mono text-text-dim">{product.brand}</span>
+              <h1 className="text-[30px] sm:text-[40px] font-semibold tracking-[-0.04em] leading-[1.02]">{product.name}</h1>
+              <div className="flex items-baseline gap-3 tabular mt-1">
+                <span className="text-[26px] sm:text-[30px] font-medium tracking-[-0.03em]">{formatSum(product.price)}</span>
+                {hasDiscount && <span className="text-text-dim line-through">{formatSum(product.oldPrice!)}</span>}
               </div>
-            )}
-            {/* Цена за день приёма — продолжение той же мысли, что и цена за мг:
-                видно, за что платишь, и в единицах, которые понятны без калькулятора */}
-            {duration && (
-              <div className="text-sm mt-2 border-l-2 border-border-strong pl-3">
-                {formatDuration(duration)} ·{" "}
-                <span className="font-semibold">≈ {formatSum(duration.pricePerDay)}/день</span>
+              <span className={`label-mono flex items-center gap-2 ${product.stock > 0 ? "text-green" : "text-red"}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${product.stock > 0 ? "bg-green" : "bg-red"}`} />
+                {product.stock > 0 ? `${t.product.inStock} · доставка сегодня` : t.product.outOfStock}
+              </span>
+            </div>
+
+            {/* Этикетка: всё, что магазин посчитал за покупателя, одним моно-голосом */}
+            <dl className="m-0 border-t border-text">
+              {labelRows.map((row) => (
+                <div key={row.label} className="grid grid-cols-[8.5rem_minmax(0,1fr)] sm:grid-cols-[10rem_minmax(0,1fr)] gap-3 py-3 border-b border-border">
+                  <dt className="label-mono text-text-dim pt-0.5">{row.label}</dt>
+                  <dd className="m-0 flex flex-col gap-1">
+                    <span className="text-[15px] font-medium tabular">{row.value}</span>
+                    {row.note && <span className="text-[13px] text-text-dim leading-relaxed">{row.note}</span>}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+
+            <ProductAddToCart
+              slug={product.slug}
+              stock={product.stock}
+              categorySlug={product.category.slug}
+              price={product.price}
+              composition={product.composition}
+              activeSubstance={product.activeSubstance}
+              activeAmount={product.activeAmount}
+              activeUnit={product.activeUnit}
+            />
+
+            <AddToTrackerButton
+              item={{
+                slug: product.slug,
+                name: product.name,
+                brand: product.brand,
+                imageUrl: product.imageUrl,
+                dosage: product.dosage,
+              }}
+            />
+
+            <div className="flex flex-col gap-6 pt-2">
+              {product.description && <p className="text-[17px] leading-relaxed max-w-prose">{product.description}</p>}
+              <div className="flex flex-col gap-1.5">
+                <h2 className="label-mono text-text-dim">{t.product.composition}</h2>
+                <p className="text-[15px] leading-relaxed whitespace-pre-line">{product.composition}</p>
               </div>
-            )}
-          </div>
-
-          <div>
-            {product.stock > 0 ? (
-              <span className="inline-flex items-center gap-1.5 text-sm text-green bg-green-bg px-3 py-1 rounded-lg">
-                {t.product.inStock}
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 text-sm text-red bg-red-bg px-3 py-1 rounded-lg">
-                {t.product.outOfStock}
-              </span>
-            )}
-          </div>
-
-          <ProductAddToCart
-            slug={product.slug}
-            stock={product.stock}
-            categorySlug={product.category.slug}
-            price={product.price}
-            composition={product.composition}
-            activeSubstance={product.activeSubstance}
-            activeAmount={product.activeAmount}
-            activeUnit={product.activeUnit}
-          />
-
-          <AddToTrackerButton
-            item={{
-              slug: product.slug,
-              name: product.name,
-              brand: product.brand,
-              imageUrl: product.imageUrl,
-              dosage: product.dosage,
-            }}
-          />
-
-          <div className="border-t border-border pt-5 flex flex-col gap-4 text-sm">
-            <div>
-              <div className="font-semibold mb-1">{t.product.composition}</div>
-              <div className="text-text-dim whitespace-pre-line">{product.composition}</div>
+              <div className="flex flex-col gap-1.5">
+                <h2 className="label-mono text-text-dim">{t.product.dosage}</h2>
+                <p className="text-[15px] leading-relaxed whitespace-pre-line">{product.dosage}</p>
+              </div>
             </div>
-            <div>
-              <div className="font-semibold mb-1">{t.product.dosage}</div>
-              <div className="text-text-dim whitespace-pre-line">{product.dosage}</div>
-            </div>
-            <div className="text-text-dim">{product.description}</div>
-          </div>
 
-          {product.contraindications && (
-            <div className="bg-red-bg text-red rounded-2xl p-4 text-sm flex items-start gap-2.5">
-              <span className="shrink-0 mt-0.5">⚠</span>
-              <span>
-                <span className="font-semibold">Кому не подходит: </span>
+            {product.contraindications && (
+              <div className="border-l-2 border-red pl-4 py-1 text-[14px] leading-relaxed">
+                <span className="label-mono text-red block mb-1">Кому не подходит</span>
                 {product.contraindications}
-              </span>
-            </div>
-          )}
+              </div>
+            )}
 
-          <DocumentsSection
-            items={[
-              {
-                label: t.product.sesCert,
-                number: product.sesCertNumber,
-                fileUrl: product.sesCertFileUrl,
-                issuedAt: product.sesCertIssuedAt?.toISOString() ?? null,
-                expiresAt: product.sesCertExpiresAt?.toISOString() ?? null,
-              },
-              {
-                label: t.product.conformityCert,
-                number: product.conformityCertNumber,
-                fileUrl: product.conformityCertFileUrl,
-                issuedAt: product.conformityCertIssuedAt?.toISOString() ?? null,
-                expiresAt: product.conformityCertExpiresAt?.toISOString() ?? null,
-              },
-            ]}
-          />
+            <DocumentsSection
+              items={[
+                {
+                  label: t.product.sesCert,
+                  number: product.sesCertNumber,
+                  fileUrl: product.sesCertFileUrl,
+                  issuedAt: product.sesCertIssuedAt?.toISOString() ?? null,
+                  expiresAt: product.sesCertExpiresAt?.toISOString() ?? null,
+                },
+                {
+                  label: t.product.conformityCert,
+                  number: product.conformityCertNumber,
+                  fileUrl: product.conformityCertFileUrl,
+                  issuedAt: product.conformityCertIssuedAt?.toISOString() ?? null,
+                  expiresAt: product.conformityCertExpiresAt?.toISOString() ?? null,
+                },
+              ]}
+            />
+          </div>
         </div>
       </div>
 
       {showComparison && (
         <section>
-          <h2 className="text-xl font-semibold tracking-tight mb-1">Сравнение по цене за вещество</h2>
-          <p className="text-sm text-text-dim mb-4">
+          <span className="label-mono text-text-dim">Сравнение</span>
+          <h2 className="display-2 mt-2 mb-2">Цена за вещество рядом с соседями</h2>
+          <p className="text-[15px] text-text-dim mb-6">
             Честно — если наш же другой товар выгоднее, это будет видно здесь.
           </p>
           <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
             <table className="w-full text-sm min-w-[560px]">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-text-dim border-b border-border">
+                <tr className="text-left label-mono text-text-dim border-b border-text">
                   <th className="py-2 pr-3 font-semibold">Товар</th>
                   <th className="py-2 px-3 font-semibold">Форма</th>
                   <th className="py-2 px-3 font-semibold text-right">Цена</th>
@@ -249,7 +242,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                       key={row.product.id}
                       className={`border-b border-border last:border-b-0 ${isCurrent ? "bg-bg-panel" : ""}`}
                     >
-                      <td className="py-2.5 pr-3 max-w-[220px]">
+                      <td className="py-3 pr-3 min-w-[180px] max-w-[260px]">
                         {isCurrent ? (
                           <span className="font-semibold">{row.product.name}</span>
                         ) : (
@@ -284,8 +277,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
       {similar.length > 0 && (
         <section>
-          <h2 className="text-xl font-semibold tracking-tight mb-4">{t.product.similar}</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <h2 className="display-2 mb-8">{t.product.similar}</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-10">
             {similar.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}

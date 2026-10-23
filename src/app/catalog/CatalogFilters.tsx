@@ -100,15 +100,17 @@ export default function CatalogFilters({
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={t.catalog.searchPlaceholder}
-          className="w-full px-4 py-2.5 rounded-lg bg-bg-panel border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
+          type="search"
+          aria-label={t.catalog.searchPlaceholder}
+          className="w-full px-0 py-2.5 bg-transparent border-0 border-b border-text text-[15px] placeholder:text-text-dim focus:outline-none focus:border-amber"
         />
       </div>
 
       <div>
-        <div className="text-xs font-semibold text-text-dim uppercase tracking-wide mb-2.5">
+        <div className="label-mono text-text-dim mb-2">
           {t.catalog.filterCategory}
         </div>
-        <div className="flex flex-col gap-0.5">
+        <div className="flex flex-col">
           <FilterRow
             active={activeCategory === ""}
             label={t.catalog.allCategories}
@@ -126,10 +128,10 @@ export default function CatalogFilters({
       </div>
 
       <div>
-        <div className="text-xs font-semibold text-text-dim uppercase tracking-wide mb-2.5">
+        <div className="label-mono text-text-dim mb-2">
           {t.catalog.filterBrand}
         </div>
-        <div className="flex flex-col gap-0.5">
+        <div className="flex flex-col">
           <FilterRow
             active={activeBrand === ""}
             label={t.catalog.allBrands}
@@ -142,24 +144,24 @@ export default function CatalogFilters({
       </div>
 
       <div>
-        <div className="text-xs font-semibold text-text-dim uppercase tracking-wide mb-2.5">
+        <div className="label-mono text-text-dim mb-2">
           {t.catalog.filterPrice}
         </div>
-        <div className="flex items-center rounded-lg border border-border bg-bg-panel overflow-hidden focus-within:ring-2 focus-within:ring-accent/30">
+        <div className="flex items-center gap-3">
           <input
             value={priceMin}
             onChange={(e) => setPriceMin(e.target.value.replace(/\D/g, ""))}
             placeholder={t.catalog.priceFrom}
             inputMode="numeric"
-            className="w-1/2 min-w-0 px-4 py-2.5 bg-transparent text-sm text-center focus:outline-none"
+            className="w-1/2 min-w-0 px-0 py-2 bg-transparent border-0 border-b border-border text-[14px] tabular focus:outline-none focus:border-text"
           />
-          <span className="w-px h-5 bg-border shrink-0" />
+          <span className="text-text-dim">—</span>
           <input
             value={priceMax}
             onChange={(e) => setPriceMax(e.target.value.replace(/\D/g, ""))}
             placeholder={t.catalog.priceTo}
             inputMode="numeric"
-            className="w-1/2 min-w-0 px-4 py-2.5 bg-transparent text-sm text-center focus:outline-none"
+            className="w-1/2 min-w-0 px-0 py-2 bg-transparent border-0 border-b border-border text-[14px] tabular focus:outline-none focus:border-text"
           />
         </div>
       </div>
@@ -177,12 +179,12 @@ export default function CatalogFilters({
       <div className="md:hidden flex items-center gap-2">
         <button
           onClick={() => setSheetOpen(true)}
-          className="flex items-center gap-2 px-4 min-h-[44px] rounded-lg bg-white border border-border text-sm font-medium"
+          className="flex items-center gap-2 px-4 min-h-[44px] rounded-lg border border-text text-sm font-medium"
         >
           <SlidersIcon />
           {t.catalog.filters}
           {activeCount > 0 && (
-            <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-accent text-white text-[11px] font-semibold flex items-center justify-center">
+            <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-amber text-white text-[11px] font-semibold flex items-center justify-center">
               {activeCount}
             </span>
           )}
@@ -192,14 +194,17 @@ export default function CatalogFilters({
       {sheetOpen && (
         <div className="md:hidden fixed inset-0 z-40">
           <div className="absolute inset-0 bg-black/40" onClick={() => setSheetOpen(false)} />
-          <div className="absolute bottom-0 inset-x-0 bg-white rounded-t-3xl p-5 pb-6 max-h-[85vh] overflow-y-auto animate-fade-in-up">
+          <div role="dialog"
+            aria-modal="true"
+            aria-label={t.catalog.filters}
+            className="absolute bottom-0 inset-x-0 bg-bg rounded-t-3xl p-5 pb-6 max-h-[85vh] overflow-y-auto animate-fade-in-up">
             <div className="flex items-center justify-between mb-4">
-              <div className="text-lg font-semibold">{t.catalog.filters}</div>
+              <div className="text-[22px] font-medium tracking-[-0.03em]">{t.catalog.filters}</div>
               <button
                 onClick={() => setSheetOpen(false)}
-                className="w-11 h-11 rounded-lg bg-bg-panel flex items-center justify-center text-text-dim"
+                className="h-11 px-1 text-[14px] font-medium"
               >
-                ✕
+                Закрыть
               </button>
             </div>
             {body}
@@ -213,7 +218,7 @@ export default function CatalogFilters({
         </div>
       )}
 
-      <aside className="hidden md:block w-64 shrink-0">
+      <aside className="hidden md:block w-56 shrink-0">
         <div className="sticky top-24">{body}</div>
       </aside>
     </>
@@ -224,10 +229,12 @@ function FilterRow({ active, label, onClick }: { active: boolean; label: string;
   return (
     <button
       onClick={onClick}
-      className={`text-left px-3 min-h-[44px] flex items-center rounded-lg text-[14px] transition-colors duration-150 ${
-        active ? "bg-bg-panel text-text font-semibold border border-border-strong" : "text-text hover:bg-bg-panel"
+      className={`text-left min-h-[38px] flex items-center text-[15px] transition-colors duration-200 ${
+        active ? "text-text font-medium" : "text-text-dim hover:text-text"
       }`}
+      aria-pressed={active}
     >
+      <span className={`w-1.5 h-1.5 rounded-full mr-3 shrink-0 transition-colors duration-200 ${active ? "bg-amber" : "bg-transparent"}`} />
       {label}
     </button>
   );

@@ -18,82 +18,77 @@ function TelegramIcon() {
   );
 }
 
+const COLUMN_TITLE = "label-mono text-text-dim mb-1";
+const LINK = "min-h-[40px] flex items-center text-[15px] hover:text-amber transition-colors duration-200";
+
 export default function Footer() {
   return (
-    <footer className="mt-20 border-t border-border bg-bg-panel">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="flex flex-col gap-3">
-          <div className="font-semibold text-lg tracking-tight">{t.common.siteName}</div>
-          <p className="text-[13px] text-text-dim leading-relaxed">
-            Витамины и БАД оригинальных брендов с документами и доставкой по Узбекистану.
-            Показываем цену за действующее вещество — видно, за что вы платите.
-          </p>
-        </div>
+    <footer className="mt-24 bg-text text-bg">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-14 sm:pt-20 pb-10 flex flex-col gap-14">
+        <p className="display-1 max-w-4xl text-bg">
+          Видно, за что <span className="text-amber">вы платите.</span>
+        </p>
 
-        <div className="flex flex-col gap-3">
-          <div className="text-[13px] font-semibold uppercase tracking-wide text-text-dim">
-            Связаться
+        <div className="grid gap-10 grid-cols-2 lg:grid-cols-4 [&_a]:text-bg">
+          <div className="flex flex-col gap-1 col-span-2 lg:col-span-1">
+            <div className={COLUMN_TITLE}>{t.common.siteName}</div>
+            <p className="text-[14px] text-bg/70 leading-relaxed max-w-xs">
+              Оригинальные бренды с документами СЭС, цена за действующее вещество у каждого товара
+              и доставка по Ташкенту в день заказа.
+            </p>
           </div>
-          <a
-            href={CONTACTS.phoneHref}
-            className="inline-flex items-center gap-2 min-h-[44px] font-medium hover:text-text-dim transition-colors duration-150"
-          >
-            <PhoneIcon />
-            {CONTACTS.phone}
-          </a>
-          <a
-            href={CONTACTS.telegramHref}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 min-h-[44px] font-medium hover:text-text-dim transition-colors duration-150"
-          >
-            <TelegramIcon />
-            {CONTACTS.telegram}
-          </a>
-          <a
-            href={`mailto:${CONTACTS.email}`}
-            className="inline-flex items-center min-h-[44px] text-[15px] text-text-dim hover:text-text transition-colors duration-150"
-          >
-            {CONTACTS.email}
-          </a>
-        </div>
 
-        <div className="flex flex-col gap-3">
-          <div className="text-[13px] font-semibold uppercase tracking-wide text-text-dim">
-            Магазин
+          <div className="flex flex-col">
+            <div className={COLUMN_TITLE}>Связаться</div>
+            <a href={CONTACTS.phoneHref} className={`${LINK} gap-2 tabular whitespace-nowrap`}>
+              <PhoneIcon />
+              {CONTACTS.phone}
+            </a>
+            <a href={CONTACTS.telegramHref} target="_blank" rel="noreferrer" className={`${LINK} gap-2`}>
+              <TelegramIcon />
+              {CONTACTS.telegram}
+            </a>
+            <a href={`mailto:${CONTACTS.email}`} className={LINK}>
+              {CONTACTS.email}
+            </a>
           </div>
-          <div className="text-[15px] leading-relaxed">{CONTACTS.address}</div>
-          <div className="text-[15px] text-text-dim">{CONTACTS.workHours}</div>
-          <div className="text-[13px] text-text-dim leading-relaxed">{CONTACTS.deliveryNote}</div>
-        </div>
 
-        <div className="flex flex-col gap-3">
-          <div className="text-[13px] font-semibold uppercase tracking-wide text-text-dim">
-            Разделы
+          <div className="flex flex-col gap-2">
+            <div className={COLUMN_TITLE}>Магазин</div>
+            <div className="text-[15px] leading-relaxed">{CONTACTS.address}</div>
+            <div className="text-[14px] text-bg/70">{CONTACTS.workHours}</div>
+            <div className="text-[13px] text-bg/60 leading-relaxed">{CONTACTS.deliveryNote}</div>
           </div>
-          <Link href="/catalog" className="min-h-[44px] flex items-center text-[15px] hover:text-text-dim transition-colors duration-150">
-            {t.nav.catalog}
-          </Link>
-          <Link href="/bundles" className="min-h-[44px] flex items-center text-[15px] hover:text-text-dim transition-colors duration-150">
-            {t.bundles.navTitle}
-          </Link>
-          <Link href="/subscription" className="min-h-[44px] flex items-center text-[15px] hover:text-text-dim transition-colors duration-150">
-            {t.nav.subscription}
-          </Link>
-          <Link href="/tracker" className="min-h-[44px] flex items-center text-[15px] hover:text-text-dim transition-colors duration-150">
-            {t.nav.tracker}
-          </Link>
-          <Link href="/privacy" className="min-h-[44px] flex items-center text-[15px] link-action">
-            Обработка персональных данных
-          </Link>
-        </div>
-      </div>
 
-      <div className="border-t border-border">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col gap-2 text-[13px] text-text-dim">
-          <div>{DISCLAIMER}</div>
-          <div>
-            {CONTACTS.legalName} · {CONTACTS.legalId} · © {new Date().getFullYear()}
+          <div className="flex flex-col">
+            <div className={COLUMN_TITLE}>Разделы</div>
+            <Link href="/catalog" className={LINK}>
+              {t.nav.catalog}
+            </Link>
+            <Link href="/podbor" className={LINK}>
+              Подбор по образу жизни
+            </Link>
+            <Link href="/bundles" className={LINK}>
+              {t.bundles.navTitle}
+            </Link>
+            <Link href="/subscription" className={LINK}>
+              {t.nav.subscription}
+            </Link>
+            <Link href="/tracker" className={LINK}>
+              {t.nav.tracker}
+            </Link>
+          </div>
+        </div>
+
+        <div className="border-t border-bg/15 pt-6 flex flex-col sm:flex-row sm:justify-between gap-3 text-[12px] text-bg/55">
+          <div className="max-w-xl">{DISCLAIMER}</div>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <span>
+              {CONTACTS.legalName} · {CONTACTS.legalId} · © {new Date().getFullYear()}
+            </span>
+            <Link href="/privacy" className="underline underline-offset-4 decoration-bg/30 hover:decoration-bg">
+              Обработка персональных данных
+            </Link>
           </div>
         </div>
       </div>

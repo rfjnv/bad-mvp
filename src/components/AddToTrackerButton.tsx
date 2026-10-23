@@ -62,7 +62,7 @@ export default function AddToTrackerButton({ item }: { item: RoutineItem }) {
         className={`inline-flex items-center gap-2 px-4 min-h-[44px] rounded-lg text-sm font-medium border transition-colors duration-150 ${
           added
             ? "bg-bg-panel border-border-strong text-text"
-            : "bg-white border-border text-text hover:border-border-strong"
+            : "bg-transparent border-border text-text hover:border-border-strong"
         }`}
       >
         <PlusIcon added={added} />

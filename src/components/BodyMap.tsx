@@ -43,8 +43,8 @@ export function BodyMapCompact({ active }: { active: Set<ZoneId> }) {
       <svg viewBox="62 0 196 440" className="h-[200px] w-auto shrink-0" aria-hidden="true">
         <defs>
           <radialGradient id="zone-glow-compact">
-            <stop offset="0%" stopColor="var(--green)" stopOpacity="0.5" />
-            <stop offset="100%" stopColor="var(--green)" stopOpacity="0" />
+            <stop offset="0%" stopColor="var(--amber)" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="var(--amber)" stopOpacity="0" />
           </radialGradient>
         </defs>
         <ellipse
@@ -55,7 +55,7 @@ export function BodyMapCompact({ active }: { active: Set<ZoneId> }) {
           fill="none"
           strokeWidth={3}
           strokeDasharray="8 10"
-          className={`stroke-green transition-opacity duration-500 ${immunityOn ? "opacity-100 body-halo" : "opacity-0"}`}
+          className={`stroke-amber transition-opacity duration-500 ${immunityOn ? "opacity-100 body-halo" : "opacity-0"}`}
         />
         <Figure layer="outline" />
         <Figure layer="fill" />
@@ -64,13 +64,13 @@ export function BodyMapCompact({ active }: { active: Set<ZoneId> }) {
           return (
             <g key={zone.id}>
               <circle cx={zone.x} cy={zone.y} r={34} fill="url(#zone-glow-compact)" className={`transition-opacity duration-500 ${on ? "opacity-100" : "opacity-0"}`} />
-              {on && <circle cx={zone.x} cy={zone.y} r={8} className="fill-green body-ping" />}
+              {on && <circle cx={zone.x} cy={zone.y} r={8} className="fill-amber body-ping" />}
               <circle
                 cx={zone.x}
                 cy={zone.y}
                 r={on ? 9 : 5}
                 strokeWidth={2.5}
-                className={`transition-all duration-300 ${on ? "fill-green stroke-white" : "fill-white stroke-text-dim"}`}
+                className={`transition-all duration-300 ${on ? "fill-amber stroke-white" : "fill-bg stroke-text-dim"}`}
               />
             </g>
           );
@@ -81,7 +81,7 @@ export function BodyMapCompact({ active }: { active: Set<ZoneId> }) {
           const on = active.has(item.id);
           return (
             <li key={item.id} className={`flex items-center gap-2 transition-colors duration-300 ${on ? "text-text font-semibold" : "text-text-dim/60"}`}>
-              <span className={`w-2 h-2 rounded-full shrink-0 transition-colors duration-300 ${on ? "bg-green" : "border border-text-dim/50"}`} />
+              <span className={`w-2 h-2 rounded-full shrink-0 transition-colors duration-300 ${on ? "bg-amber" : "border border-text-dim/50"}`} />
               {item.label}
             </li>
           );
@@ -107,8 +107,8 @@ export default function BodyMap({ active }: { active: Set<ZoneId> }) {
       >
         <defs>
           <radialGradient id="zone-glow">
-            <stop offset="0%" stopColor="var(--green)" stopOpacity="0.45" />
-            <stop offset="100%" stopColor="var(--green)" stopOpacity="0" />
+            <stop offset="0%" stopColor="var(--amber)" stopOpacity="0.45" />
+            <stop offset="100%" stopColor="var(--amber)" stopOpacity="0" />
           </radialGradient>
         </defs>
 
@@ -120,14 +120,14 @@ export default function BodyMap({ active }: { active: Set<ZoneId> }) {
           fill="none"
           strokeWidth={1.5}
           strokeDasharray="4 6"
-          className={`stroke-green transition-opacity duration-500 ${immunityOn ? "opacity-100 body-halo" : "opacity-0"}`}
+          className={`stroke-amber transition-opacity duration-500 ${immunityOn ? "opacity-100 body-halo" : "opacity-0"}`}
         />
         <text
           x={62}
           y={226}
           textAnchor="end"
           className={`text-[12px] transition-all duration-500 ${
-            immunityOn ? "fill-green font-semibold" : "fill-text-dim opacity-40"
+            immunityOn ? "fill-amber font-semibold" : "fill-text-dim opacity-40"
           }`}
         >
           {IMMUNITY_LABEL}
@@ -155,16 +155,16 @@ export default function BodyMap({ active }: { active: Set<ZoneId> }) {
                 x2={lineEndX}
                 y2={zone.labelY - 4}
                 strokeWidth={1}
-                className={`transition-all duration-500 ${on ? "stroke-green opacity-100" : "stroke-border opacity-60"}`}
+                className={`transition-all duration-500 ${on ? "stroke-amber opacity-100" : "stroke-border opacity-60"}`}
               />
               {/* key по состоянию: при включении круг пересоздаётся и пинг стартует заново */}
-              {on && <circle key={`ping-${zone.id}`} cx={zone.x} cy={zone.y} r={5} className="fill-green body-ping" />}
+              {on && <circle key={`ping-${zone.id}`} cx={zone.x} cy={zone.y} r={5} className="fill-amber body-ping" />}
               <circle
                 cx={zone.x}
                 cy={zone.y}
                 r={on ? 5.5 : 3.5}
                 strokeWidth={1.5}
-                className={`transition-all duration-300 ${on ? "fill-green stroke-white" : "fill-white stroke-text-dim"}`}
+                className={`transition-all duration-300 ${on ? "fill-amber stroke-white" : "fill-bg stroke-text-dim"}`}
               />
               <text
                 x={labelX}

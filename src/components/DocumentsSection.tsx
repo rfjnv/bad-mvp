@@ -34,19 +34,19 @@ export default function DocumentsSection({ items }: { items: CertInfo[] }) {
   if (visible.length === 0) return null;
 
   return (
-    <div className="bg-green-bg rounded-2xl p-4 flex gap-3">
-      <span className="shrink-0 w-9 h-9 rounded-full bg-white flex items-center justify-center text-green">
+    <div className="flex flex-col gap-3">
+      <div className="label-mono text-green flex items-center gap-2">
         <ShieldIcon />
-      </span>
+        {t.product.documents} · проверяются по реестру
+      </div>
       <div className="flex-1 min-w-0">
-        <div className="font-semibold text-green mb-2 text-sm">{t.product.documents}</div>
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col border-t border-text">
           {visible.map((item) => {
             const expired = item.expiresAt ? new Date(item.expiresAt) < new Date() : false;
             const fileIsPdf = item.fileUrl ? isPdf(item.fileUrl) : false;
 
             return (
-              <div key={item.label} className="bg-white rounded-xl p-3 flex gap-3">
+              <div key={item.label} className="py-3 border-b border-border flex gap-3">
                 {item.fileUrl && !fileIsPdf ? (
                   <button
                     onClick={() => setPreview(item.fileUrl)}
@@ -64,7 +64,7 @@ export default function DocumentsSection({ items }: { items: CertInfo[] }) {
                 <div className="min-w-0 text-sm flex-1">
                   <div className="font-medium">{item.label}</div>
                   <div className="text-text-dim">
-                    {t.product.docNumber}: <span className="text-text">{item.number}</span>
+                    {t.product.docNumber}: <span className="text-text font-mono text-[13px]">{item.number}</span>
                   </div>
                   {(item.issuedAt || item.expiresAt) && (
                     <div className="text-xs text-text-dim mt-0.5">
@@ -141,7 +141,7 @@ export default function DocumentsSection({ items }: { items: CertInfo[] }) {
 
 function ShieldIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M12 2 4 5v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V5l-8-3Z" />
       <path d="m9 12 2 2 4-4" />
     </svg>
