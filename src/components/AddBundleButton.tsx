@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { setCartQuantity } from "@/lib/cart";
+import { announceAdded, setCartQuantity } from "@/lib/cart";
 import { setActiveBundle } from "@/lib/bundleCart";
 import { track } from "@/lib/track";
 import { t } from "@/lib/i18n";
@@ -37,6 +37,7 @@ export default function AddBundleButton({
       productSlugs: products.map((p) => p.slug),
     });
     track("bundle_add", slug);
+    announceAdded(name);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   }

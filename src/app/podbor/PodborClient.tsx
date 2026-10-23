@@ -7,7 +7,7 @@ import ProductCard, { type ProductCardData } from "@/components/ProductCard";
 import BodyMap, { BodyMapCompact } from "@/components/BodyMap";
 import { CONDITIONS, recommendFor } from "@/lib/lifestyle";
 import { zonesForCategories } from "@/lib/bodyMap";
-import { getCart, setCartQuantity } from "@/lib/cart";
+import { announceAdded, getCart, setCartQuantity } from "@/lib/cart";
 import { formatSum } from "@/lib/format";
 import { track } from "@/lib/track";
 
@@ -27,12 +27,14 @@ export default function PodborClient({
 }) {
   const [selected, setSelected] = useState<string[]>([]);
   const [added, setAdded] = useState(false);
+  const [scanKey, setScanKey] = useState(0);
 
   function toggle(slug: string) {
     const turningOn = !selected.includes(slug);
     // Считаем только включения: это и есть ответ, какие условия про людей
     if (turningOn) track("condition_select", slug);
     setAdded(false);
+    setScanKey((k) => k + 1);
     setSelected((prev) => (turningOn ? [...prev, slug] : prev.filter((s) => s !== slug)));
   }
 
@@ -66,6 +68,7 @@ export default function PodborClient({
       if (!inCart.has(product.slug)) setCartQuantity(product.slug, 1, product.stock);
     }
     track("bundle_add", "podbor-set", { slugs: set.map((s) => s.product.slug), conditions: selected });
+    announceAdded(`Набор под ваш день · ${set.length} шт.`);
     setAdded(true);
   }
 
@@ -74,7 +77,7 @@ export default function PodborClient({
       <div className="grid lg:grid-cols-[minmax(0,1fr)_440px] gap-6 lg:gap-12 items-start">
         {/* Телефон: силуэт с легендой залипает над списком — видно, что загорается от каждого тапа */}
         <div className="lg:hidden sticky top-16 z-10 -mx-4 px-4 py-3 bg-bg/90 backdrop-blur-xl border-b border-border">
-          <BodyMapCompact active={activeZones} />
+          <BodyMapCompact active={activeZones} scanKey={scanKey} />
         </div>
 
         <div className="flex flex-col gap-5">
@@ -110,7 +113,7 @@ export default function PodborClient({
         </div>
 
         <div className="hidden lg:block sticky top-24">
-          <BodyMap active={activeZones} />
+          <BodyMap active={activeZones} scanKey={scanKey} />
         </div>
       </div>
 
@@ -130,8 +133,8 @@ export default function PodborClient({
           </div>
 
           <ul className="m-0 p-0 list-none flex flex-col">
-            {set.map(({ product, categoryName, because }) => (
-              <li key={product.slug} className="flex items-center gap-4 border-b border-border py-3">
+            {set.map(({ product, categoryName, because }, i) => (
+              <li key={product.slug} className="flex items-center gap-4 border-b border-border py-3 animate-fade-in-up" style={{ animationDelay: `${i * 70}ms` }}>
                 <Link
                   href={`/product/${product.slug}`}
                   className="relative w-16 h-16 shrink-0 bg-bg-panel rounded-xl overflow-hidden"

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { addToCart } from "@/lib/cart";
+import { addToCart, announceAdded } from "@/lib/cart";
 import { track } from "@/lib/track";
 import { t } from "@/lib/i18n";
 
@@ -11,6 +11,7 @@ export default function AddToCartButton({
   quantity = 1,
   className,
   variant = "full",
+  name,
 }: {
   slug: string;
   stock: number;
@@ -18,6 +19,8 @@ export default function AddToCartButton({
   className?: string;
   /** icon — квадрат «+» поверх фото в карточке; full — обычная кнопка с текстом */
   variant?: "full" | "icon";
+  /** Название для уведомления «В корзине» */
+  name?: string;
 }) {
   const [added, setAdded] = useState(false);
 
@@ -26,6 +29,7 @@ export default function AddToCartButton({
     e.stopPropagation();
     addToCart(slug, quantity, stock);
     track("add_to_cart", slug, { quantity, from: "card" });
+    if (name) announceAdded(name);
     setAdded(true);
     setTimeout(() => setAdded(false), 1200);
   }

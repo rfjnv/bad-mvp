@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { addToCart, getCart, CART_CHANGED_EVENT } from "@/lib/cart";
+import { addToCart, announceAdded, getCart, CART_CHANGED_EVENT } from "@/lib/cart";
 import { track } from "@/lib/track";
 import { t } from "@/lib/i18n";
 import { formatSum } from "@/lib/format";
@@ -10,6 +10,7 @@ import { findInteractionsForCategory, type CompatibilityItem, type InteractionMa
 
 export default function ProductAddToCart({
   slug,
+  name,
   stock,
   categorySlug,
   price,
@@ -19,6 +20,7 @@ export default function ProductAddToCart({
   activeUnit,
 }: {
   slug: string;
+  name: string;
   stock: number;
   categorySlug: string;
   price: number;
@@ -88,6 +90,7 @@ export default function ProductAddToCart({
   function add() {
     addToCart(slug, qty, stock);
     track("add_to_cart", slug, { quantity: qty, from: "product" });
+    announceAdded(qty > 1 ? `${name} × ${qty}` : name);
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
   }

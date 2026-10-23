@@ -156,6 +156,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
             <ProductAddToCart
               slug={product.slug}
+              name={product.name}
               stock={product.stock}
               categorySlug={product.category.slug}
               price={product.price}

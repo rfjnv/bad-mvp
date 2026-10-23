@@ -66,7 +66,7 @@ export default function ProductCard({
         ) : (
           hasDiscount && <span className="label-mono absolute top-3 left-3 bg-amber text-white px-1.5 py-0.5 rounded-md">−{discountPct}%</span>
         )}
-        <AddToCartButton slug={product.slug} stock={product.stock} variant="icon" className="absolute bottom-3 right-3" />
+        <AddToCartButton slug={product.slug} stock={product.stock} name={product.name} variant="icon" className="absolute bottom-3 right-3" />
       </div>
 
       <div className="flex flex-col gap-1 px-0.5">

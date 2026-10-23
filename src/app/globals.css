@@ -271,6 +271,101 @@
   animation: checkIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
+/* Градусы набегают от нуля. Базовое значение — итоговое, поэтому без поддержки
+   @property или при выключенной анимации сразу видна правильная цифра */
+@property --num {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
+}
+
+.count-up {
+  --num: var(--to);
+  counter-reset: num var(--num);
+  animation: countUp 1.9s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+}
+
+.count-up::after {
+  content: counter(num);
+}
+
+@keyframes countUp {
+  from {
+    --num: 0;
+  }
+}
+
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-rise {
+  animation: riseIn 1s cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s) both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.hero-fade {
+  animation: fadeIn 0.8s ease-out var(--d, 0s) both;
+}
+
+.page-enter {
+  animation: fadeIn 0.45s ease-out;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toastOut {
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+/* Появляется, держится, уходит — вся жизнь уведомления в одной CSS-анимации */
+.cart-toast {
+  animation:
+    toastIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both,
+    toastOut 0.35s ease-in 2.85s forwards;
+}
+
+.sun-static {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sun-motion {
+    display: none;
+  }
+
+  .sun-static {
+    display: inline;
+  }
+}
+
 /* Табло солнца: дуга дня прорисовывается один раз — единственный «вход» на главной */
 @keyframes sunCurve {
   from {
@@ -320,6 +415,52 @@
   transform-box: fill-box;
   transform-origin: center;
   animation: bodyPing 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.organ-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.9s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.organ-draw.organ-on {
+  stroke-dashoffset: 0;
+}
+
+@keyframes bodyScan {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(500px);
+    opacity: 0;
+  }
+}
+
+.body-scan {
+  animation: bodyScan 1.3s cubic-bezier(0.45, 0, 0.25, 1) both;
+}
+
+@keyframes bodyBreathe {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(1.008, 1.004);
+  }
+}
+
+.body-breathe {
+  transform-origin: 160px 432px;
+  animation: bodyBreathe 5.5s ease-in-out infinite;
 }
 
 @keyframes bodyHalo {

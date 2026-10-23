@@ -95,3 +95,11 @@ export function cartCount(lines: CartLine[]): number {
 }
 
 export const CART_CHANGED_EVENT = CART_EVENT;
+
+/** Отдельное событие «что-то положили» — для уведомления; изменение количества в корзине его не шлёт */
+export const CART_ADDED_EVENT = "bad-mvp-cart-added";
+
+export function announceAdded(label: string): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(CART_ADDED_EVENT, { detail: { label } }));
+}
