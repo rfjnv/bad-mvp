@@ -174,7 +174,7 @@ export default async function CatalogPage({
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-10">
               {pageItems.map((p) => (
-                <ProductCard key={p.id} product={p} bestValue={bestValueSlugs.has(p.slug)} />
+                <ProductCard key={p.id} product={p} categorySlug={p.category.slug} bestValue={bestValueSlugs.has(p.slug)} />
               ))}
             </div>
           )}

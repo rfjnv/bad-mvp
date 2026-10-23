@@ -18,16 +18,17 @@ function TelegramIcon() {
   );
 }
 
-const COLUMN_TITLE = "label-mono text-text-dim mb-1";
-const LINK = "min-h-[40px] flex items-center text-[15px] hover:text-amber transition-colors duration-200";
+const COLUMN_TITLE = "text-[13px] font-semibold text-bg/50 mb-1";
+const LINK = "min-h-[40px] flex items-center text-[15px] hover:text-sun transition-colors duration-200";
 
 export default function Footer() {
   return (
-    <footer className="mt-24 bg-text text-bg">
+    <footer className="mt-20 bg-text text-bg">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-14 sm:pt-20 pb-10 flex flex-col gap-14">
-        <p className="display-1 max-w-4xl text-bg">
-          Видно, за что <span className="text-amber">вы платите.</span>
-        </p>
+        <div className="flex items-center gap-4">
+          <span className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-sun shrink-0" aria-hidden="true" />
+          <span className="font-display font-extrabold text-[28px] sm:text-[40px] tracking-[-0.03em] leading-none">{t.common.siteName}</span>
+        </div>
 
         <div className="grid gap-10 grid-cols-2 lg:grid-cols-4 [&_a]:text-bg">
           <div className="flex flex-col gap-1 col-span-2 lg:col-span-1">

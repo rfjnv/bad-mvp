@@ -23,7 +23,6 @@ function BannerContent({ banner }: { banner: BannerData }) {
       {/* Скрим только под текстом: без него читаемость держится на удаче */}
       <div className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
       <div className="absolute left-5 right-5 bottom-5 sm:left-8 sm:bottom-8 flex flex-col items-start gap-2">
-        <span className="label-mono text-white/75">Сейчас в магазине</span>
         <h2 className="text-white display-2 max-w-lg">{banner.title}</h2>
         {banner.subtitle && <p className="text-white/80 text-sm sm:text-[15px] max-w-md">{banner.subtitle}</p>}
         {banner.linkUrl && (

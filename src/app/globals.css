@@ -1,25 +1,28 @@
 @import "tailwindcss";
 
-/* Палитра снята пипеткой с собственных фото магазина: янтарное стекло банок,
-   шалфей из баннера иммунитета, глина ташкентского кирпича под подложки */
+/* Система как на упаковке добавок: белый фон, чёрный шрифт, солнечно-жёлтый
+   фирменный цвет и свой цвет у каждой категории (см. lib/categoryColors) */
 :root {
-  --bg: #faf9f7;
-  --bg-panel: #f1ede6;
+  --bg: #ffffff;
+  --bg-panel: #f3f4f6;
   --bg-panel-2: #ffffff;
-  --border: #e3ded5;
-  --border-strong: #1b1916;
-  --text: #1b1916;
-  --text-dim: #6b655c;
-  --accent: #1b1916;
+  --border: #e3e5e8;
+  --border-strong: #0e1116;
+  --text: #0e1116;
+  --text-dim: #5d6470;
+  --accent: #0e1116;
   --accent-dark: #000000;
-  --amber: #9a5b22;
-  --amber-bg: #f5ebdf;
-  --sage: #6f7656;
-  --sage-bg: #e9eadf;
-  --green: #3f6b45;
-  --green-bg: #e7eee3;
-  --red: #a0361f;
-  --red-bg: #f6e8e2;
+  --sun: #ffd43b;
+  --sun-bg: #fff6d1;
+  /* «amber» исторически — акцент для цифр и линий; теперь насыщенный оранжевый, читается на белом */
+  --amber: #e8590c;
+  --amber-bg: #fff0e6;
+  --sage: #2f9e44;
+  --sage-bg: #e6f6e9;
+  --green: #2b8a3e;
+  --green-bg: #e6f6e9;
+  --red: #d9372b;
+  --red-bg: #ffe8e5;
 }
 
 @theme inline {
@@ -40,16 +43,18 @@
   --color-amber-bg: var(--amber-bg);
   --color-sage: var(--sage);
   --color-sage-bg: var(--sage-bg);
+  --color-sun: var(--sun);
+  --color-sun-bg: var(--sun-bg);
 
-  --font-sans: var(--font-onest), -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  --font-mono: var(--font-plex), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-sans: var(--font-geologica), -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-display: var(--font-unbounded), var(--font-geologica), -apple-system, "Segoe UI", sans-serif;
 
-  /* Аптечная строгость: углы почти прямые, у фото — чуть мягче */
-  --radius-md: 3px;
-  --radius-lg: 4px;
-  --radius-xl: 5px;
-  --radius-2xl: 6px;
-  --radius-3xl: 8px;
+  /* Мягкие углы, как у банок и этикеток */
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 14px;
+  --radius-2xl: 18px;
+  --radius-3xl: 24px;
 }
 
 @layer base {
@@ -75,22 +80,22 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: var(--font-onest), -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-family: var(--font-geologica), -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
     font-size: 16px;
     line-height: 1.5;
-    letter-spacing: -0.005em;
     -webkit-font-smoothing: antialiased;
   }
 
   h1,
   h2 {
-    letter-spacing: -0.03em;
-    font-weight: 600;
-    line-height: 1.02;
+    font-family: var(--font-unbounded), var(--font-geologica), sans-serif;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+    line-height: 1.05;
   }
 
   h3 {
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
     font-weight: 600;
   }
 
@@ -109,43 +114,42 @@
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  background: var(--sun);
 }
 
 @layer components {
-  /* Кнопки: жёсткая инверсия вместо мягких теней и плавных переходов */
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border: 1px solid transparent;
-    font-weight: 500;
-    letter-spacing: 0;
+    border: 2px solid transparent;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  }
+
+  .btn:active:not(:disabled) {
+    transform: scale(0.98);
   }
 
   .btn-primary {
     background: var(--accent);
-    color: var(--bg);
+    color: #fff;
     border-color: var(--accent);
   }
 
   .btn-primary:hover:not(:disabled) {
-    background: var(--amber);
-    border-color: var(--amber);
-    color: #fff;
+    background: var(--sun);
+    border-color: var(--accent);
+    color: var(--accent);
   }
 
-  /* Этикетка на флаконе: дозировка, цена за вещество, дни — всё, что
-     магазин считает и показывает честно, набирается одним моно-голосом */
+  /* Бывший моно-ярлык. Теперь — тихая подпись обычным регистром:
+     данные (цена за вещество, дни) остаются ровными цифрами, без «капса» */
   .label-mono {
-    font-family: var(--font-plex), ui-monospace, Menlo, Consolas, monospace;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 500;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
     font-variant-numeric: tabular-nums;
   }
 
@@ -153,24 +157,26 @@
     font-variant-numeric: tabular-nums;
   }
 
+  .font-display {
+    font-family: var(--font-unbounded), var(--font-geologica), sans-serif;
+  }
+
   .btn-secondary {
     background: transparent;
     color: var(--text);
-    border-color: var(--border);
+    border-color: var(--text);
   }
 
   .btn-secondary:hover:not(:disabled) {
-    border-color: var(--border-strong);
-    background: var(--bg-panel);
+    background: var(--sun);
   }
 
-  /* Текстовая ссылка-действие: подчёркивание вместо цветной плашки */
   .link-action {
     font-weight: 600;
     text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 4px;
-    text-decoration-color: var(--border);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 5px;
+    text-decoration-color: var(--sun);
     transition: text-decoration-color 0.15s linear;
   }
 
@@ -179,26 +185,28 @@
   }
 }
 
-/* Заголовки-«витрины»: крупно, плотно, без плашек */
 .display-1 {
-  font-size: clamp(2.25rem, 6.4vw, 4.5rem);
-  font-weight: 600;
-  letter-spacing: -0.045em;
-  line-height: 0.96;
+  font-family: var(--font-unbounded), var(--font-geologica), sans-serif;
+  font-size: clamp(2rem, 5.6vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
 }
 
 .display-2 {
-  font-size: clamp(1.6rem, 3.4vw, 2.6rem);
-  font-weight: 600;
-  letter-spacing: -0.035em;
-  line-height: 1.02;
+  font-family: var(--font-unbounded), var(--font-geologica), sans-serif;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
 }
 
 .display-mega {
-  font-size: clamp(7rem, 26vw, 19rem);
-  font-weight: 500;
-  letter-spacing: -0.07em;
-  line-height: 0.8;
+  font-family: var(--font-unbounded), var(--font-geologica), sans-serif;
+  font-size: clamp(6.5rem, 24vw, 17rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.82;
   font-variant-numeric: tabular-nums;
 }
 
@@ -354,6 +362,13 @@
 
 .sun-static {
   display: none;
+}
+
+/* На телефоне график сжимается вдвое — подписи увеличиваем в единицах SVG, чтобы остались читаемыми */
+@media (max-width: 640px) {
+  .sun-hero svg text {
+    font-size: 22px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

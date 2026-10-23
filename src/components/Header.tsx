@@ -59,18 +59,17 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-20 bg-bg/85 backdrop-blur-xl border-b border-border">
+    <header className="sticky top-0 z-20 bg-bg/90 backdrop-blur-xl border-b border-border">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-2 shrink-0" aria-label={t.common.siteName}>
-          {/* Янтарная точка — солнце, с которого начинается весь разговор о дефиците */}
-          <span className="w-2.5 h-2.5 rounded-full bg-amber" aria-hidden="true" />
-          <span className="font-semibold text-[17px] tracking-[-0.03em]">{t.common.siteName}</span>
-          <span className="label-mono text-text-dim hidden lg:inline ml-1">Ташкент</span>
+          {/* Солнце — с него начинается весь разговор о дефиците */}
+          <span className="w-4 h-4 rounded-full bg-sun border-2 border-text" aria-hidden="true" />
+          <span className="font-display font-extrabold text-[16px] tracking-[-0.02em]">{t.common.siteName}</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-7 text-[14px]">
+        <nav className="hidden md:flex items-center gap-1 text-[15px] font-medium">
           {nav.map((item) => (
-            <Link key={item.href} href={item.href} className="text-text-dim hover:text-text transition-colors duration-200">
+            <Link key={item.href} href={item.href} className="px-3 py-2 rounded-full hover:bg-bg-panel transition-colors duration-200">
               {item.label}
             </Link>
           ))}
@@ -108,7 +107,7 @@ export default function Header() {
             {t.nav.cart}
             <span
               className={`tabular min-w-[20px] h-[20px] px-1.5 rounded-full text-[11px] font-semibold flex items-center justify-center transition-colors duration-200 ${
-                count > 0 ? "bg-text text-bg" : "bg-bg-panel text-text-dim"
+                count > 0 ? "bg-sun text-text" : "bg-bg-panel text-text-dim"
               } ${bump ? "animate-badge-pop" : ""}`}
             >
               {count}
@@ -132,21 +131,20 @@ export default function Header() {
         className="md:hidden border-t border-border bg-bg px-4 pt-2 pb-5 flex flex-col"
       >
         {[{ href: "/", label: t.nav.home }, ...nav, { href: "/account", label: user ? `Кабинет · ${user.firstName}` : "Войти через Telegram" }].map(
-          (item, i) => (
+          (item) => (
             <Link
               key={item.href}
               href={item.href}
               onClick={() => setMenuOpen(false)}
-              className="min-h-[56px] flex items-baseline gap-4 border-b border-border text-[22px] font-medium tracking-[-0.03em] pt-3"
+              className="min-h-[56px] flex items-center border-b border-border font-display text-[20px] font-bold"
             >
-              <span className="label-mono text-text-dim w-6">{String(i + 1).padStart(2, "0")}</span>
               {item.label}
             </Link>
           )
         )}
 
         <div className="grid grid-cols-2 gap-2 pt-5">
-          <a href={CONTACTS.phoneHref} className="min-h-[48px] px-4 rounded-lg btn btn-primary text-sm">
+          <a href={CONTACTS.phoneHref} className="min-h-[48px] px-4 rounded-full btn btn-primary text-sm">
             <PhoneIcon />
             Позвонить
           </a>
@@ -154,7 +152,7 @@ export default function Header() {
             href={CONTACTS.telegramHref}
             target="_blank"
             rel="noreferrer"
-            className="min-h-[48px] px-4 rounded-lg btn btn-secondary text-sm"
+            className="min-h-[48px] px-4 rounded-full btn btn-secondary text-sm"
           >
             <TelegramIcon />
             Telegram

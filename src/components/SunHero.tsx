@@ -22,13 +22,8 @@ const y = (elevation: number) => BASE_Y - (Math.max(0, elevation) / MAX_E) * (BA
 
 const dateFmt = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long", timeZone: "Asia/Tashkent" });
 
-function daysWord(n: number): string {
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return "день";
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "дня";
-  return "дней";
-}
+type CSSVars = React.CSSProperties & Record<`--${string}`, string | number>;
+const delay = (d: string): CSSVars => ({ "--d": d });
 
 /**
  * Главный экран: дефицит, который нельзя почувствовать, показан цифрой,
@@ -40,7 +35,6 @@ export default function SunHero({ now = new Date() }: { now?: Date }) {
   const peak = Math.round(elevationAt(date, noon));
   const dWindow = windowAbove(date, VITAMIN_D_THRESHOLD);
   const next = dWindow ? null : nextDayAbove(date, VITAMIN_D_THRESHOLD);
-  const daysUntil = next ? Math.ceil((next.getTime() - date.getTime()) / 86_400_000) : 0;
 
   const samples: [number, number][] = [];
   for (let h = FROM_H; h <= TO_H + 0.001; h += 1 / 6) samples.push([h, elevationAt(date, h)]);
@@ -52,63 +46,57 @@ export default function SunHero({ now = new Date() }: { now?: Date }) {
   let total = 0;
   let toSun = 0;
   for (let i = 1; i < above.length; i++) {
-    const seg = Math.hypot(x(above[i][0]) - x(above[i - 1][0]), y(above[i][1]) - y(above[i - 1][1]));
-    total += seg;
+    total += Math.hypot(x(above[i][0]) - x(above[i - 1][0]), y(above[i][1]) - y(above[i - 1][1]));
     if (above[i][0] <= sun.h) toSun = total;
   }
   const sunAt = total > 0 ? Math.min(1, toSun / total).toFixed(3) : "1";
 
   return (
-    <section className="sun-hero grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] gap-8 lg:gap-14 items-end">
-      <div className="flex flex-col gap-6">
-        <div className="label-mono text-text-dim hero-rise" style={{ "--d": "0s" } as React.CSSProperties}>
-          Ташкент · {dateFmt.format(date)} · 41,3° с. ш.
+    <section className="sun-hero bg-sun rounded-3xl sm:rounded-[36px] px-5 py-7 sm:p-12 grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] gap-8 lg:gap-12 items-center overflow-hidden">
+      <div className="flex flex-col gap-5">
+        <div className="text-[15px] font-semibold hero-rise" style={delay("0s")}>
+          Ташкент, {dateFmt.format(date)}
         </div>
 
-        <div className="flex flex-col gap-4">
-          <div className="display-mega hero-rise" style={{ "--d": "0.05s" } as React.CSSProperties}>
-            <span className="sr-only">{peak} градусов</span>
-            {/* Цифра набегает от нуля на чистом CSS (@property): сервер отдаёт итог, без JS тоже верно */}
-            <span className="count-up" aria-hidden="true" style={{ "--to": peak } as React.CSSProperties} />
-            <span className="text-amber" aria-hidden="true">°</span>
-          </div>
-          <h1 className="display-2 max-w-md hero-rise" style={{ "--d": "0.2s" } as React.CSSProperties}>
-            так высоко поднимется солнце сегодня в&nbsp;полдень
-          </h1>
+        <div className="display-mega hero-rise" style={delay("0.05s")}>
+          <span className="sr-only">{peak} градусов</span>
+          {/* Цифра набегает от нуля на чистом CSS (@property): сервер отдаёт итог, без JS тоже верно */}
+          <span className="count-up" aria-hidden="true" style={{ "--to": peak } as CSSVars} />
+          <span aria-hidden="true">°</span>
         </div>
 
-        {dWindow ? (
-          <p className="text-[17px] text-text-dim max-w-md leading-relaxed hero-rise" style={{ "--d": "0.35s" } as React.CSSProperties}>
-            Окно для витамина D сегодня —{" "}
-            <span className="text-text font-medium tabular">
-              {formatClock(dWindow.from)}–{formatClock(dWindow.to)}
-            </span>
-            . Если в это время вы в офисе, солнце проходит мимо вас.
-          </p>
-        ) : (
-          <p className="text-[17px] text-text-dim max-w-md leading-relaxed hero-rise" style={{ "--d": "0.35s" } as React.CSSProperties}>
-            Ниже {VITAMIN_D_THRESHOLD}° кожа почти не вырабатывает витамин D, сколько ни гуляй.
-            {next && (
-              <>
-                {" "}
-                Такое солнце вернётся только{" "}
-                <span className="text-text font-medium">{dateFmt.format(next)}</span> — через{" "}
-                <span className="text-text font-medium tabular">
-                  {daysUntil} {daysWord(daysUntil)}
-                </span>
-                .
-              </>
-            )}
-          </p>
-        )}
+        <h2 className="text-[22px] sm:text-[28px] max-w-md hero-rise" style={delay("0.2s")}>
+          Так высоко сегодня поднимется солнце
+        </h2>
 
-        <div className="flex flex-wrap items-center gap-3 hero-rise" style={{ "--d": "0.45s" } as React.CSSProperties}>
-          <Link href="/podbor" className="min-h-[52px] px-6 rounded-lg btn btn-primary text-[15px]">
-            Проверить свой день
-            <span aria-hidden="true">→</span>
+        <p className="text-[17px] max-w-md leading-relaxed hero-rise" style={delay("0.35s")}>
+          {dWindow ? (
+            <>
+              Выше {VITAMIN_D_THRESHOLD}° оно будет с{" "}
+              <b className="tabular">{formatClock(dWindow.from)}</b> до <b className="tabular">{formatClock(dWindow.to)}</b>.
+              Только в эти часы кожа вырабатывает витамин D. Если вы в это время в офисе, солнце проходит мимо.
+            </>
+          ) : (
+            <>
+              Витамин D вырабатывается, когда солнце выше {VITAMIN_D_THRESHOLD}°.
+              {next && (
+                <>
+                  {" "}До <b>{dateFmt.format(next)}</b> оно туда не поднимется, сколько ни гуляй.
+                </>
+              )}
+            </>
+          )}
+        </p>
+
+        <div className="flex flex-wrap items-center gap-3 pt-1 hero-rise" style={delay("0.45s")}>
+          <Link href="/podbor" className="min-h-[54px] px-7 rounded-full btn btn-primary text-[16px] hover:!bg-white">
+            Проверить свой образ жизни
           </Link>
-          <Link href="/catalog?category=vitamin-d" className="min-h-[52px] px-2 inline-flex items-center link-action text-[15px]">
-            Витамин D в каталоге
+          <Link
+            href="/catalog?category=vitamin-d"
+            className="min-h-[54px] px-6 rounded-full inline-flex items-center font-semibold border-2 border-text hover:bg-white transition-colors"
+          >
+            Витамин D
           </Link>
         </div>
       </div>
@@ -121,61 +109,49 @@ export default function SunHero({ now = new Date() }: { now?: Date }) {
             </clipPath>
           </defs>
 
-          {[0, 15, 30, 60, 75].map((e) => (
-            <line key={e} x1={PAD_X} x2={W - PAD_X} y1={y(e)} y2={y(e)} className="stroke-border" strokeWidth={e === 0 ? 1.5 : 1} />
+          {[15, 30, 60, 75].map((e) => (
+            <line key={e} x1={PAD_X} x2={W - PAD_X} y1={y(e)} y2={y(e)} stroke="#0e1116" strokeOpacity={0.1} strokeWidth={1} />
           ))}
+          <line x1={PAD_X} x2={W - PAD_X} y1={BASE_Y} y2={BASE_Y} stroke="#0e1116" strokeWidth={2.5} strokeLinecap="round" />
 
-          {/* Площадь под дугой выше порога — время, когда витамин D реально вырабатывается */}
-          <path d={`${curve} L${x(above[above.length - 1][0])},${BASE_Y} L${x(above[0][0])},${BASE_Y} Z`} className="fill-amber/25" clipPath="url(#sun-above-threshold)" />
+          {/* Время, когда витамин D реально вырабатывается: часть дуги выше порога */}
+          <path d={`${curve} L${x(above[above.length - 1][0])},${BASE_Y} L${x(above[0][0])},${BASE_Y} Z`} fill="#ffffff" fillOpacity={0.7} clipPath="url(#sun-above-threshold)" />
 
-          <g className="hero-fade" style={{ "--d": "0.9s" } as React.CSSProperties}>
-          <line x1={PAD_X} x2={W - PAD_X} y1={y(VITAMIN_D_THRESHOLD)} y2={y(VITAMIN_D_THRESHOLD)} strokeDasharray="5 6" strokeWidth={1.5} className="stroke-amber" />
-          <text x={W - PAD_X} y={y(VITAMIN_D_THRESHOLD) - 8} textAnchor="end" className="label-mono fill-amber">
-            45° — порог витамина D
-          </text>
-          </g>
-
-          <path d={curve} fill="none" strokeWidth={2} strokeLinecap="round" className="stroke-text sun-curve" pathLength={1} />
-
-          <g className="hero-fade" style={{ "--d": "1.7s" } as React.CSSProperties}>
-            <line x1={x(sun.h)} x2={x(sun.h)} y1={y(sun.e)} y2={BASE_Y} strokeWidth={1} strokeDasharray="2 4" className="stroke-text-dim" />
-            <text x={x(sun.h)} y={y(sun.e) - 30} textAnchor="middle" className="label-mono fill-text">
-              {sun.label} · {Math.round(sun.e)}°
+          <g className="hero-fade" style={delay("0.9s")}>
+            <line x1={PAD_X} x2={W - PAD_X} y1={y(VITAMIN_D_THRESHOLD)} y2={y(VITAMIN_D_THRESHOLD)} stroke="#0e1116" strokeDasharray="7 7" strokeWidth={2} />
+            <text x={PAD_X} y={y(VITAMIN_D_THRESHOLD) + 26} textAnchor="start" className="text-[13px] font-semibold fill-text">
+              порог 45°
             </text>
           </g>
 
-          {/* Солнце выходит из-за горизонта и едет по дуге до своей позиции.
-              SMIL, а не CSS offset-path: так работает и в Safari на iPhone.
-              До старта таймлайна группа прозрачна — не мигает в углу */}
+          <path d={curve} fill="none" stroke="#0e1116" strokeWidth={3} strokeLinecap="round" className="sun-curve" pathLength={1} />
+
+          <g className="hero-fade" style={delay("1.7s")}>
+            <line x1={x(sun.h)} x2={x(sun.h)} y1={y(sun.e)} y2={BASE_Y} stroke="#0e1116" strokeWidth={1.5} strokeDasharray="3 5" />
+            <text x={x(sun.h)} y={y(sun.e) - 32} textAnchor="middle" className="text-[13px] font-semibold fill-text">
+              {sun.label}, {Math.round(sun.e)}°
+            </text>
+          </g>
+
+          {/* SMIL, а не CSS offset-path: так работает и в Safari на iPhone. До старта прозрачно */}
           <g className="sun-motion" opacity={0}>
-            <circle r={22} className="fill-amber/20 sun-glow" />
-            <circle r={9} className="fill-amber" />
+            <circle r={26} fill="#ffffff" fillOpacity={0.55} className="sun-glow" />
+            <circle r={12} fill="#ffffff" stroke="#0e1116" strokeWidth={3} />
             <animate attributeName="opacity" from="0" to="1" dur="0.4s" begin="0.25s" fill="freeze" />
-            <animateMotion
-              path={curve}
-              dur="1.8s"
-              begin="0.25s"
-              fill="freeze"
-              calcMode="spline"
-              keyPoints={`0;${sunAt}`}
-              keyTimes="0;1"
-              keySplines="0.33 0 0.2 1"
-            />
+            <animateMotion path={curve} dur="1.8s" begin="0.25s" fill="freeze" calcMode="spline" keyPoints={`0;${sunAt}`} keyTimes="0;1" keySplines="0.33 0 0.2 1" />
           </g>
           <g className="sun-static">
-            <circle cx={x(sun.h)} cy={y(sun.e)} r={22} className="fill-amber/20" />
-            <circle cx={x(sun.h)} cy={y(sun.e)} r={9} className="fill-amber" />
+            <circle cx={x(sun.h)} cy={y(sun.e)} r={26} fill="#ffffff" fillOpacity={0.55} />
+            <circle cx={x(sun.h)} cy={y(sun.e)} r={12} fill="#ffffff" stroke="#0e1116" strokeWidth={3} />
           </g>
 
           {[6, 9, 12, 15, 18].map((h) => (
-            <text key={h} x={x(h)} y={BASE_Y + 26} textAnchor="middle" className="label-mono fill-text-dim">
+            <text key={h} x={x(h)} y={BASE_Y + 28} textAnchor="middle" className="text-[13px] fill-text" fillOpacity={0.6}>
               {h}:00
             </text>
           ))}
         </svg>
-        <figcaption className="text-[12px] text-text-dim">
-          Расчёт по положению солнца для Ташкента, без учёта облаков.
-        </figcaption>
+        <figcaption className="text-[13px] opacity-70">Расчёт по положению солнца над Ташкентом. Облака не учитываются.</figcaption>
       </figure>
     </section>
   );

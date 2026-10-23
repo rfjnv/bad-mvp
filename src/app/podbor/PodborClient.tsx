@@ -81,7 +81,7 @@ export default function PodborClient({
         </div>
 
         <div className="flex flex-col gap-5">
-          <div className="grid grid-cols-2 border-t border-l border-border">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             {CONDITIONS.map((condition) => {
               const active = selected.includes(condition.slug);
               return (
@@ -89,13 +89,13 @@ export default function PodborClient({
                   key={condition.slug}
                   onClick={() => toggle(condition.slug)}
                   aria-pressed={active}
-                  className={`flex items-center gap-3 text-left border-b border-r border-border p-3 sm:p-4 min-h-[72px] transition-colors duration-150 ${
-                    active ? "bg-accent text-white" : "hover:bg-bg-panel"
+                  className={`flex items-center gap-3 text-left rounded-2xl border-2 p-3 sm:p-4 min-h-[76px] transition-colors duration-150 ${
+                    active ? "bg-sun border-text" : "border-border hover:border-text"
                   }`}
                 >
                   <span
-                    className={`shrink-0 w-5 h-5 rounded-[4px] border flex items-center justify-center text-[13px] ${
-                      active ? "bg-white text-accent border-white" : "border-border-strong"
+                    className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center text-[13px] font-bold ${
+                      active ? "bg-text text-sun border-text" : "border-text"
                     }`}
                   >
                     {active ? <span className="animate-check-in">✓</span> : ""}
@@ -106,9 +106,8 @@ export default function PodborClient({
             })}
           </div>
 
-          <p className="text-text-dim border-l-2 border-border-strong pl-4 text-[15px]">
-            Отметьте всё, что про вас. Дефицит чаще возникает не от болезни,
-            а от того, как устроен обычный день, — поэтому его и не замечают.
+          <p className="text-text-dim text-[15px]">
+            Отметьте всё, что про вас. Дефицит чаще приходит от обычного распорядка дня, поэтому его и не замечают.
           </p>
         </div>
 
@@ -211,7 +210,7 @@ export default function PodborClient({
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {items.map((p) => (
-                    <ProductCard key={p.id} product={p} />
+                    <ProductCard key={p.id} product={p} categorySlug={p.categorySlug} />
                   ))}
                 </div>
               </section>

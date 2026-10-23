@@ -17,7 +17,6 @@ export default async function BundlesPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 sm:pt-12 flex flex-col gap-10 sm:gap-14">
       <header className="flex flex-col gap-3">
-        <span className="label-mono text-text-dim">Со скидкой за комплект · {bundles.length}</span>
         <h1 className="display-1">{t.bundles.pageTitle}</h1>
         <p className="text-text-dim text-[17px] max-w-xl">{t.bundles.pageSubtitle}</p>
       </header>
@@ -39,7 +38,7 @@ export default async function BundlesPage() {
                   sizes="(max-width: 640px) 100vw, 480px"
                   className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
                 />
-                <span className="label-mono absolute top-3 left-3 bg-bg/90 backdrop-blur px-1.5 py-0.5 rounded-md">
+                <span className="absolute top-3 left-3 text-[13px] font-bold bg-sun px-3 py-1 rounded-full">
                   −{b.discountPct}% за комплект
                 </span>
               </Link>
@@ -62,7 +61,7 @@ export default async function BundlesPage() {
                 </ul>
 
                 <div className="flex items-baseline gap-2 pt-3 tabular">
-                  <span className="text-[20px] font-medium tracking-[-0.02em]">{formatSum(bundlePrice)}</span>
+                  <span className="font-display text-[20px] font-bold">{formatSum(bundlePrice)}</span>
                   <span className="text-sm text-text-dim line-through">{formatSum(normalPrice)}</span>
                   <span className="label-mono text-amber ml-auto shrink-0">
                     −{formatSum(normalPrice - bundlePrice)}

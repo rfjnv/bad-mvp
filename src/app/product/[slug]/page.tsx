@@ -10,6 +10,7 @@ import { computeDuration, formatDuration, pluralRu } from "@/lib/duration";
 import { getBestValueSlugs } from "@/lib/bestValue";
 import { formatNumber } from "@/lib/format";
 import ProductAddToCart from "@/components/ProductAddToCart";
+import { categoryColor } from "@/lib/categoryColors";
 import ProductCard from "@/components/ProductCard";
 import AddToTrackerButton from "@/components/AddToTrackerButton";
 import DocumentsSection from "@/components/DocumentsSection";
@@ -80,7 +81,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     ...(product.activeSubstance && product.activeAmount && product.activeUnit
       ? [{ label: "Вещество", value: `${product.activeSubstance} · ${formatNumber(product.activeAmount)} ${product.activeUnit} на порцию` }]
       : []),
-    ...(perUnit ? [{ label: "Цена за вещество", value: <span className="text-amber">{formatPricePerUnitShort(perUnit)}</span> }] : []),
+    ...(perUnit ? [{ label: "Цена за вещество", value: <span className="bg-sun px-1.5 rounded-md">{formatPricePerUnitShort(perUnit)}</span> }] : []),
     ...(duration
       ? [
           {
@@ -112,17 +113,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <div className="grid md:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] gap-8 md:gap-14">
           {/* Правая колонка вдвое длиннее фото — фото едет вместе со страницей */}
           <div className="md:sticky md:top-24 self-start w-full">
-            <div className="relative aspect-[4/5] bg-bg-panel rounded-3xl overflow-hidden">
+            <div className="relative aspect-square rounded-3xl overflow-hidden" style={{ backgroundColor: categoryColor(product.category.slug).tint }}>
               <Image
                 src={product.imageUrl}
                 alt={`${product.brand} — ${product.name}`}
                 fill
                 sizes="(max-width: 768px) 100vw, 560px"
-                className="object-contain p-[12%] mix-blend-multiply"
+                className="object-contain p-[12%] mix-blend-multiply brightness-[1.04]"
                 priority
               />
               {hasDiscount && (
-                <span className="label-mono absolute top-4 left-4 bg-amber text-white px-2 py-1 rounded-md">−{discountPct}%</span>
+                <span className="absolute top-4 left-4 text-[14px] font-bold bg-red text-white px-3 py-1 rounded-full">−{discountPct}%</span>
               )}
             </div>
           </div>
@@ -130,9 +131,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <div className="flex flex-col gap-7">
             <div className="flex flex-col gap-3">
               <span className="label-mono text-text-dim">{product.brand}</span>
-              <h1 className="text-[30px] sm:text-[40px] font-semibold tracking-[-0.04em] leading-[1.02]">{product.name}</h1>
+              <h1 className="text-[26px] sm:text-[34px] leading-[1.1]">{product.name}</h1>
               <div className="flex items-baseline gap-3 tabular mt-1">
-                <span className="text-[26px] sm:text-[30px] font-medium tracking-[-0.03em]">{formatSum(product.price)}</span>
+                <span className="font-display text-[26px] sm:text-[30px] font-bold">{formatSum(product.price)}</span>
                 {hasDiscount && <span className="text-text-dim line-through">{formatSum(product.oldPrice!)}</span>}
               </div>
               <span className={`label-mono flex items-center gap-2 ${product.stock > 0 ? "text-green" : "text-red"}`}>
@@ -141,18 +142,22 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </span>
             </div>
 
-            {/* Этикетка: всё, что магазин посчитал за покупателя, одним моно-голосом */}
-            <dl className="m-0 border-t border-text">
-              {labelRows.map((row) => (
-                <div key={row.label} className="grid grid-cols-[8.5rem_minmax(0,1fr)] sm:grid-cols-[10rem_minmax(0,1fr)] gap-3 py-3 border-b border-border">
-                  <dt className="label-mono text-text-dim pt-0.5">{row.label}</dt>
-                  <dd className="m-0 flex flex-col gap-1">
-                    <span className="text-[15px] font-medium tabular">{row.value}</span>
-                    {row.note && <span className="text-[13px] text-text-dim leading-relaxed">{row.note}</span>}
-                  </dd>
-                </div>
-              ))}
-            </dl>
+            {/* Панель как «Supplement Facts» на банке: всё, что магазин посчитал за покупателя */}
+            <section className="rounded-2xl border-[3px] border-text px-4 sm:px-5 pt-4 pb-2" aria-label="Что в банке">
+              <h2 className="font-display text-[22px] font-extrabold leading-none">Что в банке</h2>
+              <div className="h-2 bg-text rounded-full mt-3" aria-hidden="true" />
+              <dl className="m-0">
+                {labelRows.map((row, i) => (
+                  <div key={row.label} className={`grid grid-cols-[8rem_minmax(0,1fr)] sm:grid-cols-[9.5rem_minmax(0,1fr)] gap-3 py-3 ${i > 0 ? "border-t border-text/20" : ""}`}>
+                    <dt className="text-[14px] text-text-dim">{row.label}</dt>
+                    <dd className="m-0 flex flex-col gap-1">
+                      <span className="text-[15px] font-semibold tabular">{row.value}</span>
+                      {row.note && <span className="text-[13px] text-text-dim leading-relaxed">{row.note}</span>}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
 
             <ProductAddToCart
               slug={product.slug}
@@ -179,18 +184,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <div className="flex flex-col gap-6 pt-2">
               {product.description && <p className="text-[17px] leading-relaxed max-w-prose">{product.description}</p>}
               <div className="flex flex-col gap-1.5">
-                <h2 className="label-mono text-text-dim">{t.product.composition}</h2>
+                <h2 className="text-[15px] font-sans font-semibold">{t.product.composition}</h2>
                 <p className="text-[15px] leading-relaxed whitespace-pre-line">{product.composition}</p>
               </div>
               <div className="flex flex-col gap-1.5">
-                <h2 className="label-mono text-text-dim">{t.product.dosage}</h2>
+                <h2 className="text-[15px] font-sans font-semibold">{t.product.dosage}</h2>
                 <p className="text-[15px] leading-relaxed whitespace-pre-line">{product.dosage}</p>
               </div>
             </div>
 
             {product.contraindications && (
               <div className="border-l-2 border-red pl-4 py-1 text-[14px] leading-relaxed">
-                <span className="label-mono text-red block mb-1">Кому не подходит</span>
+                <span className="text-[14px] font-semibold text-red block mb-1">Кому не подходит</span>
                 {product.contraindications}
               </div>
             )}
@@ -219,8 +224,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
       {showComparison && (
         <section>
-          <span className="label-mono text-text-dim">Сравнение</span>
-          <h2 className="display-2 mt-2 mb-2">Цена за вещество рядом с соседями</h2>
+                    <h2 className="display-2 mt-2 mb-2">Цена за вещество рядом с соседями</h2>
           <p className="text-[15px] text-text-dim mb-6">
             Честно — если наш же другой товар выгоднее, это будет видно здесь.
           </p>
@@ -281,7 +285,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <h2 className="display-2 mb-8">{t.product.similar}</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-10">
             {similar.map((p) => (
-              <ProductCard key={p.id} product={p} />
+              <ProductCard key={p.id} product={p} categorySlug={product.category.slug} />
             ))}
           </div>
         </section>

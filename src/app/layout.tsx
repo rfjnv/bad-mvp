@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Onest, IBM_Plex_Mono } from "next/font/google";
+import { Unbounded, Geologica } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Analytics from "@/components/Analytics";
@@ -8,13 +8,8 @@ import { Suspense } from "react";
 import { t } from "@/lib/i18n";
 import "./globals.css";
 
-const sans = Onest({ subsets: ["latin", "cyrillic"], variable: "--font-onest", display: "swap" });
-const mono = IBM_Plex_Mono({
-  subsets: ["latin", "cyrillic"],
-  weight: ["400", "500"],
-  variable: "--font-plex",
-  display: "swap",
-});
+const display = Unbounded({ subsets: ["latin", "cyrillic"], variable: "--font-unbounded", display: "swap" });
+const sans = Geologica({ subsets: ["latin", "cyrillic"], variable: "--font-geologica", display: "swap" });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bad-mvp.onrender.com";
 const DESCRIPTION =
@@ -58,7 +53,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#faf9f7",
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
 };
@@ -69,7 +64,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" className={`${sans.variable} ${mono.variable}`}>
+    <html lang="ru" className={`${display.variable} ${sans.variable}`}>
       <body className="antialiased min-h-screen flex flex-col">
         <Suspense fallback={null}>
           <Analytics />
